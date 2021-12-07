@@ -1,0 +1,31 @@
+body {
+    font-family: sans-serif;
+    margin: 10px;
+    background-color: #BBB;
+}
+a {
+    text-decoration: none;
+}
+a:hover{
+    text-decoration: underline;
+}
+.main {
+    margin-left: 100px;
+    padding: 10px;
+    padding-left: 30px;
+    background-color: #DDD;
+    margin-right: 0px;
+}
+.menu {
+    position: absolute;
+    background-color: #CCC;
+    padding: 15px;
+    padding-left: 30px;
+}
+.button {
+    background-color: #BB0;
+    border: 0px;
+    padding: 5px 10px 5px 10px;
+    font-size: 15px;
+    cursor: pointer;
+}

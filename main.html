@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <title>main page</title>
+        <link rel="stylesheet" type="text/css"  href="C:\Users\pubko\Documents\GitHub\new-website\stylesheet.css">
+    </head>
+    <body>
+        <h1>Title</h1>
+        <ul class="menu">
+            <li><a href="C:\Users\pubko\Documents\GitHub\new-website\main.html">main</a></li>
+            <li><a href="C:\Users\pubko\Documents\GitHub\new-website\shooting game.html">game</a></li>
+            <li><a href="mailto:no-reply@accounts.google.com">mail</a></li>
+            <li><a href="https://en.wikipedia.org/wiki/Blog">blog</a></li>
+            <li><a href="https://www.youtube.com/watch?v=dQw4w9WgXcQ">video</a></li>
+        </ul>
+        <div class="main">
+            <h2>Hello, World!</h2>
+            <br>
+            <p style="text-indent: 1em;">Welcome to my website!
+                I made this website only for fun.
+                Feel free to leave a suggestion. 🙂</p>
+            <input type="text" class="button" id="comment">
+            <input type="submit" class="button" onclick="addcomment()" value="submit">
+            <p id="commentdisplay"></p>
+            <script>
+                localStorage.setItem("comments", "comments:")
+                document.getElementById("commentdisplay").innerHTML = localStorage.getItem("comments")
+                function addcomment() {
+                    var comment = document.getElementById("comment")
+                    localStorage.setItem("comments", localStorage.getItem("comments") + "<br>" + comment.value)
+                    if(comment.value == "clear") {
+                        localStorage.setItem("comments", "comments:")
+                        alert("cleared!")
+                    }
+                    document.getElementById("commentdisplay").innerHTML = localStorage.getItem("comments")
+                    comment.value = ""
+                }
+            </script>
+        </div>
+    </body>
+</html>
