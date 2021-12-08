@@ -11,11 +11,13 @@ var gun1 = {
     now: 0,
     recharge: 0,
 }
-var player2 = {x: 20, y: 180, now: {x: 40, y: 180}}
+var player2 = {x: 20, y: 180, now: {x: [undefined, undefined, undefined], y: [undefined, undefined, undefined]}}
 var gun2 = {
     angle: Math.PI,
-    dist: undefined,
-    nowAngle: Math.PI,
+    dist: [undefined, undefined, undefined],
+    nowAngle: [undefined, undefined, undefined],
+    now: 0,
+    recharge: 0,
 }
 function gameStart() {
     isGamePlaying = true
@@ -29,11 +31,13 @@ function gameStart() {
         now: 0,
         recharge: 0,
     }
-    player2 = {x: 320, y: 180, now: {x: 40, y: 180}}
+    player2 = {x: 320, y: 180, now: {x: [undefined, undefined, undefined], y: [undefined, undefined, undefined]}}
     gun2 = {
         angle: Math.PI,
-        dist: undefined,
-        nowAngle: Math.PI,
+        dist: [undefined, undefined, undefined],
+        nowAngle: [undefined, undefined, undefined],
+        now: 0,
+        recharge: 0,
     }
 }
 function gamePlaying() {
@@ -57,26 +61,27 @@ function gamePlaying() {
         ctx.fillStyle = "#111"
         for(var i = 0; i < 3; i++){
             ctx.fillRect(5 + player1.now.x[i] + gun1.dist[i]*Math.cos(gun1.nowAngle[i]), 5 + player1.now.y[i] + gun1.dist[i]*Math.sin(gun1.nowAngle[i]), 10, 10)
-            ctx.fillRect(5 + player2.now.x + gun2.dist*Math.cos(gun2.nowAngle), 5 + player2.now.y + gun2.dist*Math.sin(gun2.nowAngle), 10, 10)
+            ctx.fillRect(5 + player2.now.x[i] + gun2.dist[i]*Math.cos(gun2.nowAngle[i]), 5 + player2.now.y[i] + gun2.dist[i]*Math.sin(gun2.nowAngle[i]), 10, 10)
             gun1.dist[i] += 1;
-            gun2.dist += 1;
+            gun2.dist[i] += 1;
             if(gun1.dist[i] > 400 || isNaN(gun1.dist[i])){
                 gun1.dist[i] = undefined;
             }
-            if(gun2.dist > 200 || isNaN(gun2.dist)){
-                gun2.dist = undefined;
+            if(gun2.dist[i] > 400 || isNaN(gun2.dist[i])){
+                gun2.dist[i] = undefined;
+            }
+            if(player1.x>=-10 + player2.now.x[i] + gun2.dist[i]*Math.cos(gun2.nowAngle[i]) && player1.x-20<=player2.now.x[i] + gun2.dist[i]*Math.cos(gun2.nowAngle[i]) && player1.y>=-10 + player2.now.y[i] + gun2.dist[i]*Math.sin(gun2.nowAngle[i]) && player1.y-20<=player2.now.y[i] + gun2.dist[i]*Math.sin(gun2.nowAngle[i])){
+                player1.x += 2*Math.cos(gun2.nowAngle[i])
+                player1.y += 2*Math.sin(gun2.nowAngle[i])
+            }
+            if(player2.x>=-10 + player1.now.x[i] + gun1.dist[i]*Math.cos(gun1.nowAngle[i]) && player2.x-20<=player1.now.x[i] + gun1.dist[i]*Math.cos(gun1.nowAngle[i]) && player2.y>=-10 + player1.now.y[i] + gun1.dist[i]*Math.sin(gun1.nowAngle[i]) && player2.y-20<=player1.now.y[i] + gun1.dist[i]*Math.sin(gun1.nowAngle[i])){
+                player2.x += 2*Math.cos(gun1.nowAngle[i])
+                player2.y += 2*Math.sin(gun1.nowAngle[i])
             }
         }
         gun1.recharge -= 0.01;
+        gun2.recharge -= 0.01;
         window.addEventListener("keydown", arrowKeyMove("keydown"))
-        if(player1.x>=-10 + player2.now.x + gun2.dist*Math.cos(gun2.nowAngle) && player1.x-20<=player2.now.x + gun2.dist*Math.cos(gun2.nowAngle) && player1.y>=-10 + player2.now.y + gun2.dist*Math.sin(gun2.nowAngle) && player1.y-20<=player2.now.y + gun2.dist*Math.sin(gun2.nowAngle)){
-            player1.x += 2*Math.cos(gun2.nowAngle)
-            player1.y += 2*Math.sin(gun2.nowAngle)
-        }
-        if(player2.x>=-10 + player1.now.x + gun1.dist*Math.cos(gun1.nowAngle) && player2.x-20<=player1.now.x + gun1.dist*Math.cos(gun1.nowAngle) && player2.y>=-10 + player1.now.y + gun1.dist*Math.sin(gun1.nowAngle) && player2.y-20<=player1.now.y + gun1.dist*Math.sin(gun1.nowAngle)){
-            player2.x += 2*Math.cos(gun1.nowAngle)
-            player2.y += 2*Math.sin(gun1.nowAngle)
-        }
         if(player1.x<-20 || player1.x>400 || player1.y<-20 || player1.y>400){
             winnerText.innerHTML = "<em>player2</em> won!"
             isGamePlaying = false
@@ -115,7 +120,7 @@ function arrowKeyMove(event) {
                 gun1.now += 1;
                 gun1.now = gun1.now % 3
             }
-        }console.log(gun1.dist)
+        }
         if(pressedKey.ArrowUp){
             player2.y -= 0.5
         }
@@ -131,11 +136,16 @@ function arrowKeyMove(event) {
         if(pressedKey.p) {
             gun2.angle += 0.02
         }
-        if(pressedKey.o && gun2.dist == undefined) {
-            gun2.dist = 0;
-            gun2.nowAngle = gun2.angle;
-            player2.now.x = player2.x
-            player2.now.y = player2.y
+        if(pressedKey.o) {
+            if(gun2.dist[gun2.now] == undefined && gun2.recharge < 0){
+                gun2.recharge = 1;
+                gun2.dist[gun2.now] = 0;
+                gun2.nowAngle[gun2.now] = gun2.angle;
+                player2.now.x[gun2.now] = player2.x
+                player2.now.y[gun2.now] = player2.y
+                gun2.now += 1;
+                gun2.now = gun2.now % 3
+            }
         }
         if(pressedKey.r && pressedKey.t) {
             gameStart();
