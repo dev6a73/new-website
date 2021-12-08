@@ -6,8 +6,10 @@
             var player1 = {x: 40, y: 180, now: {x: 40, y: 40}}
             var gun1 = {
                 angle: 0,
-                dist: undefined,
-                nowAngle: 0,
+                dist: [undefined, undefined, undefined],
+                nowAngle: [undefined, undefined, undefined],
+                now: 0,
+                recharge: 0,
             }
             var player2 = {x: 20, y: 180, now: {x: 40, y: 180}}
             var gun2 = {
@@ -22,8 +24,10 @@
                 player1 = {x: 40, y: 180, now: {x: 40, y: 40}}
                 gun1 = {
                     angle: 0,
-                    dist: undefined,
-                    nowAngle: 0,
+                    dist: [undefined, undefined, undefined],
+                    nowAngle: [undefined, undefined, undefined],
+                    now: 0,
+                    recharge: 0,
                 }
                 player2 = {x: 320, y: 180, now: {x: 40, y: 180}}
                 gun2 = {
@@ -51,16 +55,19 @@
                     ctx.stroke()
                     ctx.closePath();
                     ctx.fillStyle = "#111"
-                    ctx.fillRect(5 + player1.now.x + gun1.dist*Math.cos(gun1.nowAngle), 5 + player1.now.y + gun1.dist*Math.sin(gun1.nowAngle), 10, 10)
-                    ctx.fillRect(5 + player2.now.x + gun2.dist*Math.cos(gun2.nowAngle), 5 + player2.now.y + gun2.dist*Math.sin(gun2.nowAngle), 10, 10)
-                    gun1.dist += 1;
-                    gun2.dist += 1;
-                    if(gun1.dist > 200 || isNaN(gun1.dist)){
-                        gun1.dist = undefined;
+                    for(var i = 0; i < 3; i++){
+                        ctx.fillRect(5 + player1.now.x + gun1.dist[i]*Math.cos(gun1.nowAngle[i]), 5 + player1.now.y + gun1.dist[i]*Math.sin(gun1.nowAngle[i]), 10, 10)
+                        ctx.fillRect(5 + player2.now.x + gun2.dist*Math.cos(gun2.nowAngle), 5 + player2.now.y + gun2.dist*Math.sin(gun2.nowAngle), 10, 10)
+                        gun1.dist[i] += 1;
+                        gun2.dist += 1;
+                        if(gun1.dist[i] > 400 || isNaN(gun1.dist)){
+                            gun1.dist[i] = 0;
+                        }
+                        if(gun2.dist > 200 || isNaN(gun2.dist)){
+                            gun2.dist = undefined;
+                        }
                     }
-                    if(gun2.dist > 200 || isNaN(gun2.dist)){
-                        gun2.dist = undefined;
-                    }
+                    gun1.recharge -= 0.01;
                     window.addEventListener("keydown", arrowKeyMove("keydown"))
                     if(player1.x>=-10 + player2.now.x + gun2.dist*Math.cos(gun2.nowAngle) && player1.x-20<=player2.now.x + gun2.dist*Math.cos(gun2.nowAngle) && player1.y>=-10 + player2.now.y + gun2.dist*Math.sin(gun2.nowAngle) && player1.y-20<=player2.now.y + gun2.dist*Math.sin(gun2.nowAngle)){
                         player1.x += 2*Math.cos(gun2.nowAngle)
@@ -98,12 +105,14 @@
                     if(pressedKey.q) {
                         gun1.angle += 0.02
                     }
-                    if(pressedKey.e && gun1.dist == undefined) {
-                        gun1.dist = 0;
-                        gun1.nowAngle = gun1.angle;
-                        player1.now.x = player1.x
-                        player1.now.y = player1.y
-                    }
+                    if(pressedKey.e) {
+                        if(gun1.dist[gun1.now] == undefined && gun1.recharge < 0){
+                            gun1.dist[gun1.now] = 0;
+                            gun1.nowAngle[gun1.now] = gun1.angle;
+                            player1.now.x = player1.x
+                            player1.now.y = player1.y
+                        }
+                    }console.log(gun1.dist)
                     if(pressedKey.ArrowUp){
                         player2.y -= 0.5
                     }
