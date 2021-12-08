@@ -3,7 +3,7 @@
             var ctx = canvas.getContext("2d");
             var winnerText = document.getElementById("winner")
             var isGamePlaying = false
-            var player1 = {x: 40, y: 180, now: {x: 40, y: 40}}
+            var player1 = {x: 40, y: 180, now: {x: [undefined, undefined, undefined], y: [undefined, undefined, undefined]}}
             var gun1 = {
                 angle: 0,
                 dist: [undefined, undefined, undefined],
@@ -21,7 +21,7 @@
                 isGamePlaying = true
                 document.getElementById("startbutton").value = "reset"
                 winnerText.innerHTML = ""
-                player1 = {x: 40, y: 180, now: {x: 40, y: 40}}
+                player1 = {x: 40, y: 180, now: {x: [undefined, undefined, undefined], y: [undefined, undefined, undefined]}}
                 gun1 = {
                     angle: 0,
                     dist: [undefined, undefined, undefined],
@@ -56,12 +56,12 @@
                     ctx.closePath();
                     ctx.fillStyle = "#111"
                     for(var i = 0; i < 3; i++){
-                        ctx.fillRect(5 + player1.now.x + gun1.dist[i]*Math.cos(gun1.nowAngle[i]), 5 + player1.now.y + gun1.dist[i]*Math.sin(gun1.nowAngle[i]), 10, 10)
+                        ctx.fillRect(5 + player1.now.x[i] + gun1.dist[i]*Math.cos(gun1.nowAngle[i]), 5 + player1.now.y[i] + gun1.dist[i]*Math.sin(gun1.nowAngle[i]), 10, 10)
                         ctx.fillRect(5 + player2.now.x + gun2.dist*Math.cos(gun2.nowAngle), 5 + player2.now.y + gun2.dist*Math.sin(gun2.nowAngle), 10, 10)
                         gun1.dist[i] += 1;
                         gun2.dist += 1;
-                        if(gun1.dist[i] > 400 || isNaN(gun1.dist)){
-                            gun1.dist[i] = 0;
+                        if(gun1.dist[i] > 400 || isNaN(gun1.dist[i])){
+                            gun1.dist[i] = undefined;
                         }
                         if(gun2.dist > 200 || isNaN(gun2.dist)){
                             gun2.dist = undefined;
@@ -107,10 +107,13 @@
                     }
                     if(pressedKey.e) {
                         if(gun1.dist[gun1.now] == undefined && gun1.recharge < 0){
+                            gun1.recharge = 1;
                             gun1.dist[gun1.now] = 0;
                             gun1.nowAngle[gun1.now] = gun1.angle;
-                            player1.now.x = player1.x
-                            player1.now.y = player1.y
+                            player1.now.x[gun1.now] = player1.x
+                            player1.now.y[gun1.now] = player1.y
+                            gun1.now += 1;
+                            gun1.now = gun1.now % 3
                         }
                     }console.log(gun1.dist)
                     if(pressedKey.ArrowUp){
