@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <title></title>
+        <link rel="stylesheet" type="text/css"  href="C:\Users\pubko\Documents\GitHub\new-website\stylesheet.css">
+    </head>
+    <body>
+        <h1></h1>
+        <ul class="menu">
+            <li><a href="C:\Users\pubko\Documents\GitHub\new-website\main.html">main</a></li>
+            <li><a href="C:\Users\pubko\Documents\GitHub\new-website\shooting game.html">game</a></li>
+            <li><a href="mailto:no-reply@accounts.google.com">mail</a></li>
+            <li><a href="https://en.wikipedia.org/wiki/Blog">blog</a></li>
+            <li><a href="https://www.youtube.com/watch?v=dQw4w9WgXcQ">video</a></li>
+        </ul>
+        <div class="main">
+            <h2></h2>
+            <p></p>
+        </div>
+    </body>
+</html>
