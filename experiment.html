@@ -126,12 +126,12 @@
             }
             function pointerPress(event) {
                 if(editMode == "playing"){
-                    player.v.x  = (event.x - 150 - player.x)/100
-                    player.v.y  = (event.y - 200 - player.y)/100
+                    player.v.x  = (event.x - c.offsetLeft - 10 - player.x)/100
+                    player.v.y  = (event.y - c.offsetTop - 10 - player.y)/100
                 }
                 for(var i = 0; i < 20; i++){
                     for(var j = 0; j < 20; j++){
-                        if(Math.floor((event.x - 140)/20) == i && Math.floor((event.y - 190)/20) == j && typeof(editMode) == "number"){
+                        if(Math.floor((event.x - c.offsetLeft)/20) == i && Math.floor((event.y - c.offsetTop)/20) == j && typeof(editMode) == "number"){
                             all[20*i+j] = editMode
                         }
                     }   
