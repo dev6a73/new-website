@@ -20,8 +20,10 @@
             <canvas id="canvas" width="400px" height="400px" style="background-color: #123;" onpointerdown="pointerPress(event)"></canvas>
             <br>
             <input type="button" class="button" onpointerdown="changeMode('playing')" value="play">
-            <input type="button" class="button" onpointerdown="changeMode(1)" value="add">
+            <input type="button" class="button" onpointerdown="changeMode(1)" value="add platform">
+            <input type="button" class="button" onpointerdown="changeMode(2)" value="add reset">
             <input type="button" class="button" onpointerdown="changeMode(0)" value="erase">
+            <input type="text" class="button" onkeypress="moveStartPos()" placeholder="start position ex.) 60, 340" id="startPosition">
             <p id="edit"> </p>
             <input type="button" class="button" onpointerdown="save()" value="save">
         </div>
@@ -46,8 +48,11 @@
             var editMode = false;
             var collisionDetector = [false, false, false, false]
 
-            function platform(x, y, w, h, c) {
+            function platform(x, y, w, h, c, d) {
                 ctx.fillStyle = "#246"
+                if(d == 2){
+                    ctx.fillStyle = "#345"
+                }
                 ctx.fillRect(x, y, w, h)
                 var collision = x+w>=player.x && x<=player.x+20 && y+h>=player.y && y<=player.y+20
                 if(collision && player.y <= y-15 && c[0]){
@@ -70,6 +75,14 @@
                     player.v.y *= bounce
                     player.x += 1
                 }//right
+                if(collision && d == 2){
+                    player = {
+                        x: startPos[0],
+                        y: startPos[1],
+                        a: {x: 0, y: 0.01},
+                        v: {x: 0, y: 0},
+                    }
+                }
             }
             function inGame() {
                 ctx.clearRect(0, 0, c.width, c.height)
@@ -89,8 +102,8 @@
                         if(all[20*i+j-20] == 1 && i != 0){
                             collisionDetector[2] = false
                         }
-                        if(all[20*i+j] === 1){
-                            platform(i*20, j*20, 20, 20, collisionDetector)
+                        if(all[20*i+j] > 0){
+                            platform(i*20, j*20, 20, 20, collisionDetector, all[20*i+j])
                         }
                     }
                 }
@@ -127,7 +140,10 @@
             function changeMode(e) {
                 editMode = e
                 if(e == 1){
-                    e = "editing(adding)"
+                    e = "editing(adding platform)"
+                }
+                if(e == 2){
+                    e = "editing(adding reset platform)"
                 }
                 if(e == 0){
                     e = "editing(erasing)"
@@ -136,6 +152,10 @@
             }
             function save() {
                 alert(all + "," + startPos)
+            }
+            function moveStartPos() {
+                startPos[0] = Number(document.getElementById('startPosition').value.split(',')[0]);
+                startPos[1] = Number(document.getElementById('startPosition').value.split(',')[1])
             }
             window.setInterval(inGame, 1)
         </script>
