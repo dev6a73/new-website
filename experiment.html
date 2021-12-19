@@ -17,7 +17,7 @@
         <div class="main">
             <h2>Platformer</h2>
             <p>A mobile game for fun. Enjoy!</p>
-            <canvas id="canvas" width="400px" height="400px" style="background-color: #123;" onpointerdown="pointerPress(event)" ondrag="pointerDrag(event)"></canvas>
+            <canvas id="canvas" width="400px" height="400px" style="background-color: #123;" onpointerdown="pointerPress(event)" onpointerup="pointerpressingistrue = false;" onpointermove="pointerxy[0] = event.x - c.offsetLeft; pointerxy[1] = event.y - c.offsetTop"></canvas>
             <br>
             <input type="button" class="button" onpointerdown="changeMode('playing')" value="play">
             <input type="button" class="button" onpointerdown="changeMode(1)" value="add platform">
@@ -47,6 +47,8 @@
             all[98] = 1
             var editMode = false;
             var collisionDetector = [false, false, false, false]
+            var pointerpressingistrue = false
+            var pointerxy = [0, 0]
 
             function platform(x, y, w, h, c, d) {
                 ctx.fillStyle = "#246"
@@ -123,25 +125,22 @@
                 }
                 ctx.fillStyle = "#26A"
                 ctx.fillRect(player.x, player.y, 20, 20)
+                if(pointerpressingistrue){
+                    for(var i = 0; i < 20; i++){
+                        for(var j = 0; j < 20; j++){
+                            if(Math.floor((pointerxy[0])/20) == i && Math.floor((pointerxy[1])/20) == j && typeof(editMode) == "number"){
+                                all[20*i+j] = editMode
+                            }
+                        }   
+                    }
+                }
             }
             function pointerPress(event) {
                 if(editMode == "playing"){
                     player.v.x  = (event.x - c.offsetLeft - 10 - player.x)/100
                     player.v.y  = (event.y - c.offsetTop - 10 - player.y)/100
                 }
-                //pointerDrag(event)
-            }
-            function pointerDrag(event) {
-                console.log(event)
-                if(event.type == "pointermove"){
-                    for(var i = 0; i < 20; i++){
-                        for(var j = 0; j < 20; j++){
-                            if(Math.floor((event.x - c.offsetLeft)/20) == i && Math.floor((event.y - c.offsetTop)/20) == j && typeof(editMode) == "number"){
-                                all[20*i+j] = editMode
-                            }
-                        }   
-                    }
-                }
+                pointerpressingistrue = true
             }
             function changeMode(e) {
                 editMode = e
