@@ -22,6 +22,8 @@
             <input type="button" class="button" onpointerdown="changeMode('playing')" value="play">
             <input type="button" class="button" onpointerdown="changeMode(1)" value="add platform">
             <input type="button" class="button" onpointerdown="changeMode(2)" value="add reset">
+            <input type="button" class="button" onpointerdown="changeMode(3)" value="add ?">
+            <input type="button" class="button" onpointerdown="changeMode(4)" value="add fluid">
             <input type="button" class="button" onpointerdown="changeMode(0)" value="erase">
             <input type="text" class="button" onkeypress="moveStartPos()" placeholder="start position ex.) 60, 340" id="startPosition">
             <p id="edit"> </p>
@@ -53,37 +55,57 @@
             var pointerpressingistrue = false
             var pointerxy = [0, 0]
             var pressedKey = {}
-            var jumpable;
-
-            function platform(x, y, w, h, c, d) {
-                ctx.fillStyle = "#246"
+            var status;
+            function platform(x, y, c, d) {
+                var collision = x+20>=player.x+1 && x<=player.x+19 && y+20>=player.y+1 && y<=player.y+19
+                if(d == 1){
+                    ctx.fillStyle = "#246"
+                }
                 if(d == 2){
                     ctx.fillStyle = "#345"
                 }
-                ctx.fillRect(x, y, w, h)
-                var collision = x+w>=player.x+1 && x<=player.x+19 && y+h>=player.y+1 && y<=player.y+19
-                if(collision && player.y <= y-15 && c[0]){
+                if(d == 3){
+                    ctx.fillStyle = "#444"
+                    c[3] = false
+                    c[1] = false
+                    c[2] = false
+                }
+                if(d == 4){
+                    ctx.fillStyle = "#147"
+                    c = false
+                }
+                if(d == 0){
+                    ctx.fillStyle = "#123"
+                    c = false
+                }
+                ctx.fillRect(x, y, 20, 20)
+                if(collision && d==0){
+                    status = 'air'
+                }
+                if(collision && player.y+20 >= y-10 && d==1){
+                    status = 'ground'
+                }
+                if(collision && player.y <= y-15 && c[0] && ((c[4] != false && d==3) || d!=3)){
                     player.v.x *= friction
                     player.v.y = -bounce*Math.abs(player.v.y)
                     player.y -= 1
-                    jumpable = true
+                    status = 'ground'
                 }//up
-                else if(player.y <= y-20 && player.y+20 >= y-10){
-                    jumpable = false
+                
+                if(collision && d==4){
+                    status = 'water'
                 }
-                if(collision && player.y >= y+h-5 && c[1]){
+                if(collision && player.y >= y+20-5 && c[1]){
                     player.v.y = bounce*Math.abs(player.v.y)
                     c[1] = false
                     player.y += 1
                 }//down
                 if(collision && player.x+15 <= x && c[2]){
                     player.v.x = -friction*Math.abs(player.v.x)
-                    player.v.y *= bounce
                     player.x -= 1
                 }//left
-                if(collision && player.x >= x+w-5 && c[3]){
+                if(collision && player.x >= x+20-5 && c[3]){
                     player.v.x = friction*Math.abs(player.v.x)
-                    player.v.y *= bounce
                     player.x += 1
                 }//right
                 if(collision && d == 2 && editMode == "playing"){
@@ -104,6 +126,9 @@
                         if(all[20*i+j+1] == 1 && j != 19){
                             collisionDetector[1] = false
                         }
+                        if(all[20*i+j-1] == 3 && j != 0){
+                            collisionDetector[4] = false
+                        }
                         if(all[20*i+j-1] == 1 && j != 0){
                             collisionDetector[0] = false
                         }
@@ -113,8 +138,8 @@
                         if(all[20*i+j-20] == 1 && i != 0){
                             collisionDetector[2] = false
                         }
-                        if(all[20*i+j] > 0){
-                            platform(i*20, j*20, 20, 20, collisionDetector, all[20*i+j])
+                        if(all[20*i+j] >= 0){
+                            platform(i*20, j*20, collisionDetector, all[20*i+j])
                         }
                     }
                 }
@@ -146,6 +171,11 @@
                         }   
                     }
                 }
+                if(status == "water"){
+                    player.v.x *= 0.9
+                    player.v.y *= 0.9
+                }
+                console.log(status)
             }
             function pointerPress(event) {
                 if(editMode == "playing"){
@@ -164,6 +194,12 @@
                 }
                 if(e == 0){
                     e = "editing(erasing)"
+                }
+                if(e == 3){
+                    e = "editing(adding ?)"
+                }
+                if(e == 4){
+                    e = "editing(adding fluid)"
                 }
                 document.getElementById("edit").innerHTML = "now: " + e
             }
@@ -191,11 +227,15 @@
             }
             window.setInterval(inGame, 1)
             window.setInterval(function() {
-                if(pressedKey.w && jumpable){
-                    player.v.y = -1;
-                    jumpable = false
+                if(pressedKey.w && status == "ground"){
+                    player.v.y = -1.4;
+                    status = 'air'
                 }
-                if(pressedKey.s && jumpable === false){
+                if(pressedKey.w && status == "water"){
+                    player.v.y = -0.5;
+                    status = 'air'
+                }
+                if(pressedKey.s && status == 'air'){
                     player.a.y = 0.1;
                     player.v.x = 0
                 }else{
