@@ -2,8 +2,14 @@
 <html lang="en">
     <head>
         <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
         <title>jump</title>
         <link rel="stylesheet" type="text/css"  href="https://taewoong-1.github.io/new-website/stylesheet.css">
+        <style>
+            #canvas {
+                background-color: #123;
+            }
+        </style>
     </head>
     <body onpointerup="pointerpressingistrue = false;" onkeydown="arrowKeyMove(event)">
         <h1>Title</h1>
@@ -17,7 +23,7 @@
         <div class="main">
             <h2>Platformer</h2>
             <p>A platform game. Enjoy!</p>
-            <canvas id="canvas" width="400px" height="400px" style="background-color: #123;" onpointerdown="pointerPress(event)" onpointerup="pointerpressingistrue = false;" onpointermove="pointerxy[0] = event.x - c.offsetLeft; pointerxy[1] = event.y - c.offsetTop"></canvas>
+            <canvas id="canvas" width="400px" height="400px" onpointerdown="pointerPress(event)" onpointerup="pointerpressingistrue = false;" onpointermove="pointerxy[0] = event.x - c.offsetLeft; pointerxy[1] = event.y - c.offsetTop"></canvas>
             <br>
             <input type="button" class="button" onpointerdown="changeMode('playing')" value="play">
             <input type="button" class="button" onpointerdown="changeMode(1)" value="add platform">
@@ -79,10 +85,12 @@
                     c = false
                 }
                 ctx.fillRect(x, y, 20, 20)
-                if(collision && d==0){
+                if(collision && d==0 && status == 'air'){
                     status = 'air'
+                } else {
+                    document.getElementById("edit").innerHTML = status
                 }
-                if(collision && player.y+20 >= y-10 && d==1){
+                if(x+20>=player.x+1 && x<=player.x+19 && player.y+20 >= y-10 && d==1 && y+20>=player.y+1){
                     status = 'ground'
                 }
                 if(collision && player.y <= y-15 && c[0] && ((c[4] != false && d==3) || d!=3)){
@@ -120,6 +128,7 @@
             function inGame() {
                 ctx.clearRect(0, 0, c.width, c.height)
 
+                status = 'air'
                 for(var i = 0; i < 20; i++){
                     for(var j = 0; j < 20; j++){
                         collisionDetector = [true, true, true, true]
@@ -175,7 +184,6 @@
                     player.v.x *= 0.9
                     player.v.y *= 0.9
                 }
-                console.log(status)
             }
             function pointerPress(event) {
                 if(editMode == "playing"){

@@ -3,6 +3,7 @@
     <head>
         <meta charset="UTF-8">
         <title>main page</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
         <link rel="stylesheet" type="text/css"  href="https://taewoong-1.github.io/new-website/stylesheet.css">
     </head>
     <body>
@@ -17,12 +18,12 @@
         <div class="main">
             <h2>Hello, World!</h2>
             <br>
-            <p style="text-indent: 1em;">Welcome to my website!
-                I made this website for fun.
+            <p class="indented">Welcome to my website!
                 Feel free to leave a suggestion. 🙂</p>
-            <input type="text" class="button" id="comment">
+            <input type="text" class="button" id="comment" placeholder="enter a comment">
             <input type="submit" class="button" onclick="addcomment()" value="submit">
             <p id="commentdisplay"></p>
+
             <script>
                 localStorage.setItem("comments", "comments:")
                 document.getElementById("commentdisplay").innerHTML = localStorage.getItem("comments")

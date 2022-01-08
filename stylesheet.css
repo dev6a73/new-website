@@ -29,3 +29,6 @@ a:hover{
     font-size: 15px;
     cursor: pointer;
 }
+.indented {
+    text-indent: 1em;
+}
