@@ -27,7 +27,7 @@
             <br>
             <input type="button" class="button" onpointerdown="changeMode('playing')" value="play">
             <input type="button" class="button" onpointerdown="changeMode(1)" value="add platform">
-            <input type="button" class="button" onpointerdown="changeMode(2)" value="add reset">
+            <input type="button" class="button" onpointerdown="changeMode(2)" value="add x">
             <input type="button" class="button" onpointerdown="changeMode(3)" value="add ?">
             <input type="button" class="button" onpointerdown="changeMode(4)" value="add fluid">
             <input type="button" class="button" onpointerdown="changeMode(0)" value="erase">
@@ -87,10 +87,11 @@
                 ctx.fillRect(x, y, 20, 20)
                 if(collision && d==0 && status == 'air'){
                     status = 'air'
-                } else {
-                    document.getElementById("edit").innerHTML = status
                 }
                 if(x+20>=player.x+1 && x<=player.x+19 && player.y+20 >= y-10 && d==1 && y+20>=player.y+1){
+                    status = 'ground'
+                }
+                if(x+20>=player.x+1 && x<=player.x+19 && player.y+20 >= y-10 && d==3 && y+20>=player.y+1 && c[4] != false){
                     status = 'ground'
                 }
                 if(collision && player.y <= y-15 && c[0] && ((c[4] != false && d==3) || d!=3)){
@@ -198,7 +199,7 @@
                     e = "editing(adding platform)"
                 }
                 if(e == 2){
-                    e = "editing(adding reset platform)"
+                    e = "editing(adding x)"
                 }
                 if(e == 0){
                     e = "editing(erasing)"
