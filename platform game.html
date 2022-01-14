@@ -29,7 +29,7 @@
             <input type="button" class="button" onpointerdown="changeMode(1)" value="add platform">
             <input type="button" class="button" onpointerdown="changeMode(2)" value="add x">
             <input type="button" class="button" onpointerdown="changeMode(3)" value="add ?">
-            <input type="button" class="button" onpointerdown="changeMode(4)" value="add fluid">
+            <input type="button" class="button" onpointerdown="changeMode(4)" value="add water">
             <input type="button" class="button" onpointerdown="changeMode(0)" value="erase">
             <input type="text" class="button" onkeypress="moveStartPos()" placeholder="start position ex.) 60, 340" id="startPosition">
             <p id="edit"> </p>
@@ -43,11 +43,17 @@
             var player = {
                 x: startPos[0],
                 y: startPos[1],
-                a: {x: 0, y: 0.01},
+                a: {x: 0, y: 0},
                 v: {x: 0, y: 0},
             }
             var bounce = 0.5
-            var friction = 0.5
+            var friction = 1.05
+            var frictionForce=[0,0]
+            var dragForce=[0,0]
+            var buoyancy = 0;
+            var airDensity = .005
+            var waterDensity = .5
+            var gravity = 0.01
             var speed = 1
             var all = []
             for(var i = 0; i < 400; i++){
@@ -88,14 +94,13 @@
                 if(collision && d==0 && status == 'air'){
                     status = 'air'
                 }
-                if(x+20>=player.x+1 && x<=player.x+19 && player.y+20 >= y-10 && d==1 && y+20>=player.y+1){
+                if(x+20>=player.x+1 && x<=player.x+19 && player.y+20 >= y && d==1 && y+20>=player.y+1){
                     status = 'ground'
                 }
-                if(x+20>=player.x+1 && x<=player.x+19 && player.y+20 >= y-10 && d==3 && y+20>=player.y+1 && c[4] != false){
+                if(x+20>=player.x+1 && x<=player.x+19 && player.y+20 >= y && d==3 && y+20>=player.y+1 && c[4] != false){
                     status = 'ground'
                 }
                 if(collision && player.y <= y-15 && c[0] && ((c[4] != false && d==3) || d!=3)){
-                    player.v.x *= friction
                     player.v.y = -bounce*Math.abs(player.v.y)
                     player.y -= 1
                     status = 'ground'
@@ -110,11 +115,9 @@
                     player.y += 1
                 }//down
                 if(collision && player.x+15 <= x && c[2]){
-                    player.v.x = -friction*Math.abs(player.v.x)
                     player.x -= 1
                 }//left
                 if(collision && player.x >= x+20-5 && c[3]){
-                    player.v.x = friction*Math.abs(player.v.x)
                     player.x += 1
                 }//right
                 if(collision && d == 2 && editMode == "playing"){
@@ -124,6 +127,7 @@
                         a: {x: 0, y: 0.01},
                         v: {x: 0, y: 0},
                     }
+                    var frictionForce=[0,0]
                 }
             }
             function inGame() {
@@ -154,19 +158,22 @@
                     }
                 }
                 if(editMode == "playing"){
-                    if(player.v.y > 3){
-                        player.v.y = 3
-                    }
                     player.x += player.v.x;
                     player.v.x += player.a.x;
                     player.y += player.v.y;
                     player.v.y += player.a.y;
+                    player.v.y += gravity
+                    player.v.x += frictionForce[0];
+                    player.v.y += frictionForce[1];
+                    player.v.x += dragForce[0];
+                    player.v.y += dragForce[1];
+                    player.v.y += buoyancy
                 }//move
                 if(player.x<-20 || player.x>400 || player.y<-20 || player.y>400 || isNaN(player.y) || isNaN(player.x)) {
                     player = {
                         x: startPos[0],
                         y: startPos[1],
-                        a: {x: 0, y: 0.01},
+                        a: {x: 0, y: 0},
                         v: {x: 0, y: 0},
                     }
                 }
@@ -182,8 +189,20 @@
                     }
                 }
                 if(status == "water"){
-                    player.v.x *= 0.9
-                    player.v.y *= 0.9
+                    dragForce[0] = -(1/2)*waterDensity*player.v.x*player.v.x*Math.sign(player.v.x)
+                    dragForce[1] = -(1/2)*waterDensity*player.v.y*player.v.y*Math.sign(player.v.y)
+                    buoyancy = -waterDensity*gravity
+                }
+                if(status == 'ground'){
+                    frictionForce[0] = -gravity*friction*player.v.x
+                    frictionForce[1] = -gravity*friction*player.v.y
+                }
+                if(status == 'air'){
+                    dragForce[0] = -(1/2)*airDensity*player.v.x*player.v.x*Math.sign(player.v.x)
+                    dragForce[1] = -(1/2)*airDensity*player.v.y*player.v.y*Math.sign(player.v.y)
+                    buoyancy = -airDensity*gravity
+                    frictionForce[0] = 0
+                    frictionForce[1] = 0
                 }
             }
             function pointerPress(event) {
@@ -208,7 +227,7 @@
                     e = "editing(adding ?)"
                 }
                 if(e == 4){
-                    e = "editing(adding fluid)"
+                    e = "editing(adding water)"
                 }
                 document.getElementById("edit").innerHTML = "now: " + e
             }
@@ -236,19 +255,16 @@
             }
             window.setInterval(inGame, 1)
             window.setInterval(function() {
-                if(pressedKey.w && status == "ground"){
+                if(pressedKey.w && (status == "ground" || status == "water")){
                     player.v.y = -1.4;
                     status = 'air'
                 }
-                if(pressedKey.w && status == "water"){
-                    player.v.y = -0.5;
-                    status = 'air'
-                }
+                
                 if(pressedKey.s && status == 'air'){
                     player.a.y = 0.1;
                     player.v.x = 0
                 }else{
-                    player.a.y = 0.01
+                    player.a.y = 0
                 }
                 if(pressedKey.d){
                     if(player.v.x <= speed){

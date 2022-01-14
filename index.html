@@ -1,43 +1,37 @@
 <!DOCTYPE html>
 <html lang="en">
-    <head>
-        <meta charset="UTF-8">
-        <title>main page</title>
-        <meta name="viewport" content="width=device-width, initial-scale=1">
-        <link rel="stylesheet" type="text/css"  href="https://taewoong-1.github.io/new-website/stylesheet.css">
-    </head>
-    <body>
-        <h1>Title</h1>
-        <ul class="menu">
-            <li><a href="index.html">main</a></li>
-            <li><a href="shooting game.html">game</a></li>
-            <li><a href="mailto:no-reply@accounts.google.com">mail</a></li>
-            <li><a href="https://en.wikipedia.org/wiki/Blog">blog</a></li>
-            <li><a href="https://www.youtube.com/watch?v=dQw4w9WgXcQ">video</a></li>
-        </ul>
-        <div class="main">
-            <h2>Hello, World!</h2>
-            <br>
-            <p class="indented">Welcome to my website!
-                Feel free to leave a suggestion. 🙂</p>
-            <input type="text" class="button" id="comment" placeholder="enter a comment">
-            <input type="submit" class="button" onclick="addcomment()" value="submit">
-            <p id="commentdisplay"></p>
 
-            <script>
-                localStorage.setItem("comments", "comments:")
-                document.getElementById("commentdisplay").innerHTML = localStorage.getItem("comments")
-                function addcomment() {
-                    var comment = document.getElementById("comment")
-                    localStorage.setItem("comments", localStorage.getItem("comments") + "<br>" + comment.value)
-                    if(comment.value == "clear") {
-                        localStorage.setItem("comments", "comments:")
-                        alert("cleared!")
-                    }
-                    document.getElementById("commentdisplay").innerHTML = localStorage.getItem("comments")
-                    comment.value = ""
-                }
-            </script>
-        </div>
-    </body>
+<head>
+    <meta charset="UTF-8">
+    <title>main page</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" type="text/css" href="https://taewoong-1.github.io/new-website/stylesheet.css">
+    <script src="C:\Users\pubko\Documents\GitHub\new-website\server\server\node_modules"></script>
+</head>
+
+<body>
+    <h1>Title</h1>
+    <ul class="menu">
+        <li><a href="index.html">main</a></li>
+        <li><a href="shooting game.html">game</a></li>
+        <li><a href="mailto:no-reply@accounts.google.com">mail</a></li>
+        <li><a href="https://en.wikipedia.org/wiki/Blog">blog</a></li>
+        <li><a href="https://www.youtube.com/watch?v=dQw4w9WgXcQ">video</a></li>
+    </ul>
+    <div class="main">
+        
+        <h2>Hello, World!</h2>
+        <p class="indented">Welcome to my website!
+            Feel free to leave a suggestion.</p>
+        <input type="button" class="button" onclick="addnew('a', 1)" value="log in">
+        <br>
+        <input type="text" class="button" id="comment" placeholder="enter a comment">
+        <input type="submit" class="button" onclick="addcomment()" value="submit">
+
+        <script src="C:\Users\pubko\Documents\GitHub\new-website\server\server\routes\users.js">
+            window.setInterval(function(){console.log(allusers);}, 10)
+        </script>
+    </div>
+</body>
+
 </html>

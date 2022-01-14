@@ -1,22 +1,26 @@
 <!DOCTYPE html>
 <html lang="en">
-    <head>
-        <meta charset="UTF-8">
-        <title></title>
-        <link rel="stylesheet" type="text/css"  href="https://taewoong-1.github.io/new-website/stylesheet.css">
-    </head>
-    <body>
-        <h1></h1>
-        <ul class="menu">
-            <li><a href="index.html">main</a></li>
-            <li><a href="shooting game.html">game</a></li>
-            <li><a href="mailto:no-reply@accounts.google.com">mail</a></li>
-            <li><a href="https://en.wikipedia.org/wiki/Blog">blog</a></li>
-            <li><a href="https://www.youtube.com/watch?v=dQw4w9WgXcQ">video</a></li>
-        </ul>
-        <div class="main">
-            <h2></h2>
-            <p></p>
-        </div>
-    </body>
+
+<head>
+    <meta charset="UTF-8">
+    <title></title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" type="text/css" href="https://taewoong-1.github.io/new-website/stylesheet.css">
+</head>
+
+<body>
+    <h1></h1>
+    <ul class="menu">
+        <li><a href="index.html">main</a></li>
+        <li><a href="shooting game.html">game</a></li>
+        <li><a href="mailto:no-reply@accounts.google.com">mail</a></li>
+        <li><a href="https://en.wikipedia.org/wiki/Blog">blog</a></li>
+        <li><a href="https://www.youtube.com/watch?v=dQw4w9WgXcQ">video</a></li>
+    </ul>
+    <div class="main">
+        <h2></h2>
+        <p></p>
+    </div>
+</body>
+
 </html>
