@@ -3,11 +3,14 @@
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
-        <title>jump</title>
+        <title>platform game</title>
         <link rel="stylesheet" type="text/css"  href="https://taewoong-1.github.io/new-website/stylesheet.css">
         <style>
             #canvas {
                 background-color: #123;
+            }
+            #Advanced {
+                display: none;
             }
         </style>
     </head>
@@ -21,8 +24,8 @@
             <li><a href="https://www.youtube.com/watch?v=dQw4w9WgXcQ">video</a></li>
         </ul>
         <div class="main">
-            <h2>Platformer</h2>
-            <p>A platform game. Enjoy!</p>
+            <h2>Platform Game</h2>
+            <p>Make your own platform game.</p>
             <canvas id="canvas" width="400px" height="400px" onpointerdown="pointerPress(event)" onpointerup="pointerpressingistrue = false;" onpointermove="pointerxy[0] = event.x - c.offsetLeft; pointerxy[1] = event.y - c.offsetTop"></canvas>
             <br>
             <input type="button" class="button" onpointerdown="changeMode('playing')" value="play">
@@ -31,7 +34,14 @@
             <input type="button" class="button" onpointerdown="changeMode(3)" value="add ?">
             <input type="button" class="button" onpointerdown="changeMode(4)" value="add water">
             <input type="button" class="button" onpointerdown="changeMode(0)" value="erase">
-            <input type="text" class="button" onkeypress="moveStartPos()" placeholder="start position ex.) 60, 340" id="startPosition">
+            <br>
+            <br>
+            <input type="button" class="button" onpointerdown="document.getElementById('Advanced').style.display = 'block'" value="Advanced">
+            <div id="Advanced">
+                <br>
+                <input type="text" class="button" placeholder="start position ex.) 60, 340" id="sta rtPosition">
+                <input type="button" class="button" onpointerdown="moveStartPos()" value="apply">
+            </div>
             <p id="edit"> </p>
             <input type="button" class="button" onpointerdown="save()" value="save">
             <input type="text" class="button" onkeypress="load()" placeholder="load" id="load">
@@ -67,7 +77,7 @@
             var pointerpressingistrue = false
             var pointerxy = [0, 0]
             var pressedKey = {}
-            var status;
+            let status = [0, 0, 0, 0, 0];//[air, ground, x, wall, water]
             function platform(x, y, c, d) {
                 var collision = x+20>=player.x+1 && x<=player.x+19 && y+20>=player.y+1 && y<=player.y+19
                 if(d == 1){
@@ -91,23 +101,23 @@
                     c = false
                 }
                 ctx.fillRect(x, y, 20, 20)
-                if(collision && d==0 && status == 'air'){
-                    status = 'air'
+                if(collision && d==0 && status[0] == 1){
+                    status[0] = 1
                 }
                 if(x+20>=player.x+1 && x<=player.x+19 && player.y+20 >= y && d==1 && y+20>=player.y+1){
-                    status = 'ground'
+                    status[1] = 1
                 }
                 if(x+20>=player.x+1 && x<=player.x+19 && player.y+20 >= y && d==3 && y+20>=player.y+1 && c[4] != false){
-                    status = 'ground'
+                    status[1] = 1
                 }
                 if(collision && player.y <= y-15 && c[0] && ((c[4] != false && d==3) || d!=3)){
                     player.v.y = -bounce*Math.abs(player.v.y)
                     player.y -= 1
-                    status = 'ground'
+                    status[1] = 1
                 }//up
                 
                 if(collision && d==4){
-                    status = 'water'
+                    status[4] = 1
                 }
                 if(collision && player.y >= y+20-5 && c[1]){
                     player.v.y = bounce*Math.abs(player.v.y)
@@ -127,13 +137,16 @@
                         a: {x: 0, y: 0.01},
                         v: {x: 0, y: 0},
                     }
-                    var frictionForce=[0,0]
+                    frictionForce=[0,0]
+                    dragForce=[0,0]
+                    buoyancy = 0;
+
                 }
             }
             function inGame() {
                 ctx.clearRect(0, 0, c.width, c.height)
 
-                status = 'air'
+                status = [1, 0, 0, 0, 0]
                 for(var i = 0; i < 20; i++){
                     for(var j = 0; j < 20; j++){
                         collisionDetector = [true, true, true, true]
@@ -188,22 +201,25 @@
                         }   
                     }
                 }
-                if(status == "water"){
-                    dragForce[0] = -(1/2)*waterDensity*player.v.x*player.v.x*Math.sign(player.v.x)
-                    dragForce[1] = -(1/2)*waterDensity*player.v.y*player.v.y*Math.sign(player.v.y)
-                    buoyancy = -waterDensity*gravity
-                }
-                if(status == 'ground'){
-                    frictionForce[0] = -gravity*friction*player.v.x
-                    frictionForce[1] = -gravity*friction*player.v.y
-                }
-                if(status == 'air'){
+                if(status[0] == 1){
                     dragForce[0] = -(1/2)*airDensity*player.v.x*player.v.x*Math.sign(player.v.x)
                     dragForce[1] = -(1/2)*airDensity*player.v.y*player.v.y*Math.sign(player.v.y)
                     buoyancy = -airDensity*gravity
                     frictionForce[0] = 0
                     frictionForce[1] = 0
                 }
+                if(status[4] == 1){
+                    dragForce[0] = -(1/2)*waterDensity*player.v.x*player.v.x*Math.sign(player.v.x)
+                    dragForce[1] = -(1/2)*waterDensity*player.v.y*player.v.y*Math.sign(player.v.y)
+                    buoyancy = -waterDensity*gravity
+                    frictionForce[0] = 0
+                    frictionForce[1] = 0
+                }
+                if(status[1] == 1){
+                    frictionForce[0] = -gravity*friction*player.v.x
+                    frictionForce[1] = -gravity*friction*player.v.y
+                }
+                document.getElementById("edit").innerHTML = status
             }
             function pointerPress(event) {
                 if(editMode == "playing"){
@@ -255,12 +271,12 @@
             }
             window.setInterval(inGame, 1)
             window.setInterval(function() {
-                if(pressedKey.w && (status == "ground" || status == "water")){
+                if(pressedKey.w && (status[1] == 1 || status[4] == 1)){
                     player.v.y = -1.4;
-                    status = 'air'
+                    status[1] = 0
                 }
                 
-                if(pressedKey.s && status == 'air'){
+                if(pressedKey.s && status[0] == 1){
                     player.a.y = 0.1;
                     player.v.x = 0
                 }else{
