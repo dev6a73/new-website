@@ -22,16 +22,10 @@
         <h2>Hello, World!</h2>
         <p class="indented">Welcome to my website!
             Feel free to leave a suggestion.</p>
-        <input type="button" class="button" onclick="addnew()" value="log in">
+        <input type="button" class="button" onclick="window.location.href = './users/create'" value="log in">
         <br>
         <input type="text" class="button" id="comment" placeholder="enter a comment">
         <input type="submit" class="button" onclick="addcomment()" value="submit">
-
-        <script>
-            function addnew() {
-                window.location.href = './users/create'
-            }
-        </script>
     </div>
 </body>
 
