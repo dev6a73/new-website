@@ -2,7 +2,7 @@ var mongoose = require('mongoose');
 
 var Schema = mongoose.Schema;
 
-var BookSchema = new Schema(
+var UserSchema = new Schema(
   {
     name: {type: String, required: true},
     password: {type: String, required: true},
@@ -10,12 +10,12 @@ var BookSchema = new Schema(
   }
 );
 
-// Virtual for book's URL
-BookSchema
+// Virtual for user's URL
+UserSchema
 .virtual('url')
 .get(function () {
-  return '/catalog/book/' + this._id;
+  return '/catalog/user/' + this._id;
 });
 
 //Export model
-module.exports = mongoose.model('Book', BookSchema);
+module.exports = mongoose.model('User', UserSchema);
