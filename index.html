@@ -22,13 +22,15 @@
         <h2>Hello, World!</h2>
         <p class="indented">Welcome to my website!
             Feel free to leave a suggestion.</p>
-        <input type="button" class="button" onclick="addnew('a', 1)" value="log in">
+        <input type="button" class="button" onclick="addnew()" value="log in">
         <br>
         <input type="text" class="button" id="comment" placeholder="enter a comment">
         <input type="submit" class="button" onclick="addcomment()" value="submit">
 
-        <script src="C:\Users\pubko\Documents\GitHub\new-website\server\server\routes\users.js">
-            window.setInterval(function(){console.log(allusers);}, 10)
+        <script>
+            function addnew() {
+                window.location.href = './users/create'
+            }
         </script>
     </div>
 </body>
