@@ -1,4 +1,4 @@
-var Book = require('../models/user');
+var User = require('../models/user');
 
 var async = require('async');
 
@@ -8,54 +8,51 @@ exports.index = function(req, res) {
     res.redirect('/:id');
 };
 
-// Display list of all books.
-exports.book_list = function(req, res, next) {
+// Display list of all users.
+exports.user_list = function(req, res, next) {
 
-    Book.find({}, 'title author')
-      .sort({title : 1})
-      .populate('author')
-      .exec(function (err, list_books) {
+    User.exec(function (err, list_users) {
         if (err) { return next(err); }
         //Successful, so render
-        res.render('book_list', { title: 'Book List', book_list: list_books });
+        res.render('user_list', { title: 'User List', user_list: list_users });
       });
   
   };
   
 
-// Display detail page for a specific book.
-exports.book_detail = function(req, res, next) {
+// Display detail page for a specific user.
+exports.user_detail = function(req, res, next) {
 
     async.parallel({
-        book: function(callback) {
+        user: function(callback) {
 
-            Book.findById(req.params.id)
+            User.findById(req.params.id)
               .populate('author')
               .populate('genre')
               .exec(callback);
         },
-        book_instance: function(callback) {
+        user_instance: function(callback) {
 
-          BookInstance.find({ 'book': req.params.id })
+          UserInstance.find({ 'user': req.params.id })
           .exec(callback);
         },
     }, function(err, results) {
         if (err) { return next(err); }
-        if (results.book==null) { // No results.
-            var err = new Error('Book not found');
+        if (results.user==null) { // No results.
+            var err = new Error('User not found');
             err.status = 404;
             return next(err);
         }
         // Successful, so render.
-        res.render('book_detail', { title: results.book.title, book: results.book, book_instances: results.book_instance } );
+        res.render('user_detail', { title: results.user.title, user: results.user, user_instances: results.user_instance } );
     });
 
 };
 
-// Display book create form on GET.
-exports.book_create_get = function(req, res, next) {
+// Display user create form on GET.
+exports.user_create_get = function(req, res, next) {
 
-    // Get all authors and genres, which we can use for adding to our book.
+    // Get all authors and genres, which we can use for adding to our user.
     async.parallel({
         authors: function(callback) {
             Author.find(callback);
@@ -65,13 +62,13 @@ exports.book_create_get = function(req, res, next) {
         },
     }, function(err, results) {
         if (err) { return next(err); }
-        res.render('book_form', { title: 'Create Book', authors: results.authors, genres: results.genres });
+        res.render('user_form', { title: 'Create User', authors: results.authors, genres: results.genres });
     });
 
 };
 
-// Handle book create on POST.
-exports.book_create_post = [
+// Handle user create on POST.
+exports.user_create_post = [
     // Convert the genre to an array.
     (req, res, next) => {
         if(!(req.body.genre instanceof Array)){
@@ -96,8 +93,8 @@ exports.book_create_post = [
         // Extract the validation errors from a request.
         const errors = validationResult(req);
 
-        // Create a Book object with escaped and trimmed data.
-        var book = new Book(
+        // Create a User object with escaped and trimmed data.
+        var user = new User(
           { title: req.body.title,
             author: req.body.author,
             summary: req.body.summary,
@@ -121,72 +118,72 @@ exports.book_create_post = [
 
                 // Mark our selected genres as checked.
                 for (let i = 0; i < results.genres.length; i++) {
-                    if (book.genre.indexOf(results.genres[i]._id) > -1) {
+                    if (user.genre.indexOf(results.genres[i]._id) > -1) {
                         results.genres[i].checked='true';
                     }
                 }
-                res.render('book_form', { title: 'Create Book',authors:results.authors, genres:results.genres, book: book, errors: errors.array() });
+                res.render('user_form', { title: 'Create User',authors:results.authors, genres:results.genres, user: user, errors: errors.array() });
             });
             return;
         }
         else {
-            // Data from form is valid. Save book.
-            book.save(function (err) {
+            // Data from form is valid. Save user.
+            user.save(function (err) {
                 if (err) { return next(err); }
-                   //successful - redirect to new book record.
-                   res.redirect(book.url);
+                   //successful - redirect to new user record.
+                   res.redirect(user.url);
                 });
         }
     }
 ];
 
-// Display book delete form on GET.
-exports.book_delete_get = function(req, res, next) {
+// Display user delete form on GET.
+exports.user_delete_get = function(req, res, next) {
 
     async.parallel({
-        book: function(callback) {
-            Book.findById(req.params.id).populate('author').populate('genre').exec(callback);
+        user: function(callback) {
+            User.findById(req.params.id).populate('author').populate('genre').exec(callback);
         },
-        book_bookinstances: function(callback) {
-            BookInstance.find({ 'book': req.params.id }).exec(callback);
+        user_userinstances: function(callback) {
+            UserInstance.find({ 'user': req.params.id }).exec(callback);
         },
     }, function(err, results) {
         if (err) { return next(err); }
-        if (results.book==null) { // No results.
-            res.redirect('/catalog/books');
+        if (results.user==null) { // No results.
+            res.redirect('/catalog/users');
         }
         // Successful, so render.
-        res.render('book_delete', { title: 'Delete Book', book: results.book, book_instances: results.book_bookinstances } );
+        res.render('user_delete', { title: 'Delete User', user: results.user, user_instances: results.user_userinstances } );
     });
 
 };
 
-// Handle book delete on POST.
-exports.book_delete_post = function(req, res, next) {
+// Handle user delete on POST.
+exports.user_delete_post = function(req, res, next) {
 
     // Assume the post has valid id (ie no validation/sanitization).
 
     async.parallel({
-        book: function(callback) {
-            Book.findById(req.body.id).populate('author').populate('genre').exec(callback);
+        user: function(callback) {
+            User.findById(req.body.id).populate('author').populate('genre').exec(callback);
         },
-        book_bookinstances: function(callback) {
-            BookInstance.find({ 'book': req.body.id }).exec(callback);
+        user_userinstances: function(callback) {
+            UserInstance.find({ 'user': req.body.id }).exec(callback);
         },
     }, function(err, results) {
         if (err) { return next(err); }
         // Success
-        if (results.book_bookinstances.length > 0) {
-            // Book has book_instances. Render in same way as for GET route.
-            res.render('book_delete', { title: 'Delete Book', book: results.book, book_instances: results.book_bookinstances } );
+        if (results.user_userinstances.length > 0) {
+            // User has user_instances. Render in same way as for GET route.
+            res.render('user_delete', { title: 'Delete User', user: results.user, user_instances: results.user_userinstances } );
             return;
         }
         else {
-            // Book has no BookInstance objects. Delete object and redirect to the list of books.
-            Book.findByIdAndRemove(req.body.id, function deleteBook(err) {
+            // User has no UserInstance objects. Delete object and redirect to the list of users.
+            User.findByIdAndRemove(req.body.id, function deleteUser(err) {
                 if (err) { return next(err); }
-                // Success - got to books list.
-                res.redirect('/catalog/books');
+                // Success - got to users list.
+                res.redirect('/catalog/users');
             });
 
         }
@@ -194,15 +191,15 @@ exports.book_delete_post = function(req, res, next) {
 
 };
 
-// Display book update form on GET.
-exports.book_update_get = function(req, res, next) {
+// Display user update form on GET.
+exports.user_update_get = function(req, res, next) {
 
-    // Get book, books and genres for form.
+    // Get user, users and genres for form.
     async.parallel({
-        book: function(callback) {
-            Book.findById(req.params.id).populate('book').populate('genre').exec(callback);
+        user: function(callback) {
+            User.findById(req.params.id).populate('user').populate('genre').exec(callback);
         },
-        books: function(callback) {
+        users: function(callback) {
             Author.find(callback);
         },
         genres: function(callback) {
@@ -210,27 +207,27 @@ exports.book_update_get = function(req, res, next) {
         },
         }, function(err, results) {
             if (err) { return next(err); }
-            if (results.book==null) { // No results.
-                var err = new Error('Book not found');
+            if (results.user==null) { // No results.
+                var err = new Error('User not found');
                 err.status = 404;
                 return next(err);
             }
             // Success.
             // Mark our selected genres as checked.
             for (var all_g_iter = 0; all_g_iter < results.genres.length; all_g_iter++) {
-                for (var book_g_iter = 0; book_g_iter < results.book.genre.length; book_g_iter++) {
-                    if (results.genres[all_g_iter]._id.toString()===results.book.genre[book_g_iter]._id.toString()) {
+                for (var user_g_iter = 0; user_g_iter < results.user.genre.length; user_g_iter++) {
+                    if (results.genres[all_g_iter]._id.toString()===results.user.genre[user_g_iter]._id.toString()) {
                         results.genres[all_g_iter].checked='true';
                     }
                 }
             }
-            res.render('book_form', { title: 'Update Book', books: results.books, genres: results.genres, book: results.book });
+            res.render('user_form', { title: 'Update User', users: results.users, genres: results.genres, user: results.user });
         });
 
 };
 
-// Handle book update on POST.
-exports.book_update_post = [
+// Handle user update on POST.
+exports.user_update_post = [
 
     // Convert the genre to an array
     (req, res, next) => {
@@ -256,8 +253,8 @@ exports.book_update_post = [
         // Extract the validation errors from a request.
         const errors = validationResult(req);
 
-        // Create a Book object with escaped/trimmed data and old id.
-        var book = new Book(
+        // Create a User object with escaped/trimmed data and old id.
+        var user = new User(
           { title: req.body.title,
             author: req.body.author,
             summary: req.body.summary,
@@ -282,20 +279,20 @@ exports.book_update_post = [
 
                 // Mark our selected genres as checked.
                 for (let i = 0; i < results.genres.length; i++) {
-                    if (book.genre.indexOf(results.genres[i]._id) > -1) {
+                    if (user.genre.indexOf(results.genres[i]._id) > -1) {
                         results.genres[i].checked='true';
                     }
                 }
-                res.render('book_form', { title: 'Update Book',authors: results.authors, genres: results.genres, book: book, errors: errors.array() });
+                res.render('user_form', { title: 'Update User',authors: results.authors, genres: results.genres, user: user, errors: errors.array() });
             });
             return;
         }
         else {
             // Data from form is valid. Update the record.
-            Book.findByIdAndUpdate(req.params.id, book, {}, function (err,thebook) {
+            User.findByIdAndUpdate(req.params.id, user, {}, function (err,theuser) {
                 if (err) { return next(err); }
-                   // Successful - redirect to book detail page.
-                   res.redirect(thebook.url);
+                   // Successful - redirect to user detail page.
+                   res.redirect(theuser.url);
                 });
         }
     }
