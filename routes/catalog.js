@@ -29,7 +29,7 @@ router.post('/user/:id/update', user_controller.user_update_post);
 router.get('/user/:id', user_controller.user_detail);
 
 // GET request for list of all user items.
-router.get('/users', user_controller.user_list);
+router.get('/user/list', user_controller.user_list);
 
 
 module.exports = router;

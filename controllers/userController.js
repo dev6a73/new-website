@@ -5,7 +5,7 @@ var async = require('async');
 const { body,validationResult } = require('express-validator');
 
 exports.index = function(req, res) {
-    res.redirect('/:id');
+    res.redirect('/users/:id');
 };
 
 // Display list of all users.
@@ -298,3 +298,4 @@ exports.user_update_post = [
     }
 ];
 
+exports.user_list = [];
