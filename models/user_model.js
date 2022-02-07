@@ -14,7 +14,7 @@ var UserSchema = new Schema(
 UserSchema
 .virtual('url')
 .get(function () {
-  return '/catalog/users/' + this._id;
+  return '/users/' + this._id;
 });
 
 //Export model

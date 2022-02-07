@@ -1,17 +1,20 @@
-var User = require('../models/user');
+var User = require('../models/user_model');
 
 var async = require('async');
 
 const { body,validationResult } = require('express-validator');
 
 exports.index = function(req, res) {
-    res.redirect('/users/:id');
+    res.send("redirect")
 };
 
 // Display list of all users.
 exports.user_list = function(req, res, next) {
 
-    User.exec(function (err, list_users) {
+    User.find({}, 'username')
+        .sort({title : 1})
+        .populate('username')
+        .exec(function (err, list_users) {
         if (err) { return next(err); }
         //Successful, so render
         res.render('user_list', { title: 'User List', user_list: list_users });
@@ -27,14 +30,8 @@ exports.user_detail = function(req, res, next) {
         user: function(callback) {
 
             User.findById(req.params.id)
-              .populate('author')
-              .populate('genre')
+              .populate()
               .exec(callback);
-        },
-        user_instance: function(callback) {
-
-          UserInstance.find({ 'user': req.params.id })
-          .exec(callback);
         },
     }, function(err, results) {
         if (err) { return next(err); }
@@ -54,15 +51,9 @@ exports.user_create_get = function(req, res, next) {
 
     // Get all authors and genres, which we can use for adding to our user.
     async.parallel({
-        authors: function(callback) {
-            Author.find(callback);
-        },
-        genres: function(callback) {
-            Genre.find(callback);
-        },
     }, function(err, results) {
         if (err) { return next(err); }
-        res.render('user_form', { title: 'Create User', authors: results.authors, genres: results.genres });
+        res.render('user_form', { title: 'Create User'});
     });
 
 };
@@ -71,21 +62,12 @@ exports.user_create_get = function(req, res, next) {
 exports.user_create_post = [
     // Convert the genre to an array.
     (req, res, next) => {
-        if(!(req.body.genre instanceof Array)){
-            if(typeof req.body.genre ==='undefined')
-            req.body.genre = [];
-            else
-            req.body.genre = new Array(req.body.genre);
-        }
         next();
     },
 
     // Validate and sanitize fields.
-    body('title', 'Title must not be empty.').trim().isLength({ min: 1 }).escape(),
-    body('author', 'Author must not be empty.').trim().isLength({ min: 1 }).escape(),
-    body('summary', 'Summary must not be empty.').trim().isLength({ min: 1 }).escape(),
-    body('isbn', 'ISBN must not be empty').trim().isLength({ min: 1 }).escape(),
-    body('genre.*').escape(),
+    body('username', 'Username must not be empty.').trim().isLength({ min: 1 }).escape(),
+    body('password', 'Password must not be empty.').trim().isLength({ min: 1 }).escape(),
 
     // Process request after validation and sanitization.
     (req, res, next) => {
@@ -95,11 +77,8 @@ exports.user_create_post = [
 
         // Create a User object with escaped and trimmed data.
         var user = new User(
-          { title: req.body.title,
-            author: req.body.author,
-            summary: req.body.summary,
-            isbn: req.body.isbn,
-            genre: req.body.genre
+          { username: req.body.username,
+            password: req.body.password,
            });
 
         if (!errors.isEmpty()) {
@@ -107,22 +86,9 @@ exports.user_create_post = [
 
             // Get all authors and genres for form.
             async.parallel({
-                authors: function(callback) {
-                    Author.find(callback);
-                },
-                genres: function(callback) {
-                    Genre.find(callback);
-                },
             }, function(err, results) {
                 if (err) { return next(err); }
-
-                // Mark our selected genres as checked.
-                for (let i = 0; i < results.genres.length; i++) {
-                    if (user.genre.indexOf(results.genres[i]._id) > -1) {
-                        results.genres[i].checked='true';
-                    }
-                }
-                res.render('user_form', { title: 'Create User',authors:results.authors, genres:results.genres, user: user, errors: errors.array() });
+                res.render('user_form', { title: 'Create User', user: user, errors: errors.array() });
             });
             return;
         }
@@ -297,5 +263,3 @@ exports.user_update_post = [
         }
     }
 ];
-
-exports.user_list = [];

@@ -6,7 +6,6 @@ var logger = require('morgan');
 
 var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
-var catalogRouter = require('./routes/catalog');  
 var compression = require('compression');
 var helmet = require('helmet');
 
@@ -37,7 +36,6 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
-app.use('/catalog', catalogRouter);  // Add catalog routes to middleware chain.
 
 app.get('/users/:userid', function (req, res) {
   res.send(req.params);
