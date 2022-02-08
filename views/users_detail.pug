@@ -1,0 +1,19 @@
+extends layout
+
+block content
+
+  h1 Account: #{users.username}
+
+  div(style='margin-left:20px;margin-top:20px')
+
+    h4 account info
+
+    
+    dl
+      dt #{users.username}
+      dd #{users.data}
+    hr
+    p
+      a(href=users.url+'/delete') Delete users
+    p
+      a(href=users.url+'/update') Update users
