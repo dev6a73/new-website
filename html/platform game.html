@@ -14,7 +14,7 @@
             }
         </style>
     </head>
-    <body onpointerup="pointerpressingistrue = false;" onkeydown="arrowKeyMove(event)">
+    <body onpointerup="pressedpointer = false;" onkeydown="arrowKeyMove(event)">
         <h1>Title</h1>
         <ul class="menu">
             <li><a href="index.html">main</a></li>
@@ -26,7 +26,7 @@
         <div class="main">
             <h2>Platform Game</h2>
             <p>Make your own platform game.</p>
-            <canvas id="canvas" width="400px" height="400px" onpointerdown="pointerPress(event)" onpointerup="pointerpressingistrue = false;" onpointermove="pointerxy[0] = event.x - c.offsetLeft; pointerxy[1] = event.y - c.offsetTop"></canvas>
+            <canvas id="canvas" width="400px" height="400px" onpointerdown="pointerPress(event)" onpointerup="pressedpointer = false;" onpointermove="pointerxy[0] = event.x - c.offsetLeft; pointerxy[1] = event.y - c.offsetTop"></canvas>
             <br>
             <input type="button" class="button" onpointerdown="changeMode('playing')" value="play">
             <input type="button" class="button" onpointerdown="changeMode(1)" value="add platform">
@@ -39,7 +39,7 @@
             <input type="button" class="button" onpointerdown="document.getElementById('Advanced').style.display = 'block'" value="Advanced">
             <div id="Advanced">
                 <br>
-                <input type="text" class="button" placeholder="start position ex.) 60, 340" id="sta rtPosition">
+                <input type="text" class="button" placeholder="start position ex.) 60, 340" id="startPosition">
                 <input type="button" class="button" onpointerdown="moveStartPos()" value="apply">
             </div>
             <p id="edit"> </p>
@@ -56,12 +56,12 @@
                 a: {x: 0, y: 0},
                 v: {x: 0, y: 0},
             }
-            var bounce = 0.5
-            var friction = 1.05
+            var rebound_ratio = 0.5
+            var friction = 5
             var frictionForce=[0,0]
             var dragForce=[0,0]
             var buoyancy = 0;
-            var airDensity = .005
+            var airDensity = .0005
             var waterDensity = .5
             var gravity = 0.01
             var speed = 1
@@ -74,7 +74,8 @@
             all[98] = 1
             var editMode = false;
             var collisionDetector = [false, false, false, false]
-            var pointerpressingistrue = false
+            var pressedpointer = false
+            var climbing = true
             var pointerxy = [0, 0]
             var pressedKey = {}
             let status = [0, 0, 0, 0, 0];//[air, ground, x, wall, water]
@@ -101,17 +102,17 @@
                     c = false
                 }
                 ctx.fillRect(x, y, 20, 20)
-                if(collision && d==0 && status[0] == 1){
+                if(collision && d==0){
                     status[0] = 1
                 }
-                if(x+20>=player.x+1 && x<=player.x+19 && player.y+20 >= y && d==1 && y+20>=player.y+1){
+                if(x+20>=player.x+2 && x<=player.x+18 && player.y+20 >= y && d==1 && y>=player.y-15){
                     status[1] = 1
                 }
-                if(x+20>=player.x+1 && x<=player.x+19 && player.y+20 >= y && d==3 && y+20>=player.y+1 && c[4] != false){
+                if(x+20>=player.x+2 && x<=player.x+18 && player.y+20 >= y && d==3 && y>=player.y-5 && c[4] != false){
                     status[1] = 1
                 }
                 if(collision && player.y <= y-15 && c[0] && ((c[4] != false && d==3) || d!=3)){
-                    player.v.y = -bounce*Math.abs(player.v.y)
+                    player.v.y = -Math.abs(player.v.y)*rebound_ratio
                     player.y -= 1
                     status[1] = 1
                 }//up
@@ -119,16 +120,20 @@
                 if(collision && d==4){
                     status[4] = 1
                 }
-                if(collision && player.y >= y+20-5 && c[1]){
-                    player.v.y = bounce*Math.abs(player.v.y)
+                if(collision && player.y >= y+15 && c[1]){
+                    player.v.y = Math.abs(player.v.y)*rebound_ratio
                     c[1] = false
                     player.y += 1
                 }//down
-                if(collision && player.x+15 <= x && c[2]){
+                if(collision && player.x+10 <= x && c[2] && x-player.x-10>player.y-y){
                     player.x -= 1
+                    player.v.x = -Math.abs(player.v.x)*rebound_ratio
+                    status[3] = 1
                 }//left
-                if(collision && player.x >= x+20-5 && c[3]){
+                if(collision && player.x >= x+10 && c[3] && player.x-x-10>player.y-y){
                     player.x += 1
+                    player.v.x = Math.abs(player.v.x)*rebound_ratio
+                    status[3] = 1
                 }//right
                 if(collision && d == 2 && editMode == "playing"){
                     player = {
@@ -140,13 +145,12 @@
                     frictionForce=[0,0]
                     dragForce=[0,0]
                     buoyancy = 0;
-
                 }
             }
             function inGame() {
                 ctx.clearRect(0, 0, c.width, c.height)
 
-                status = [1, 0, 0, 0, 0]
+                status = [0, 0, 0, 0, 0]
                 for(var i = 0; i < 20; i++){
                     for(var j = 0; j < 20; j++){
                         collisionDetector = [true, true, true, true]
@@ -170,6 +174,18 @@
                         }
                     }
                 }
+                if(player.v.x > 20){
+                    player.v.x = 20
+                }
+                if(player.v.x < -20){
+                    player.v.x = -20
+                }
+                if(player.v.y < -20){
+                    player.v.y = -20
+                }
+                if(player.v.y > 10){
+                    player.v.y = 10
+                }
                 if(editMode == "playing"){
                     player.x += player.v.x;
                     player.v.x += player.a.x;
@@ -192,7 +208,7 @@
                 }
                 ctx.fillStyle = "#26A"
                 ctx.fillRect(player.x, player.y, 20, 20)
-                if(pointerpressingistrue){
+                if(pressedpointer){
                     for(var i = 0; i < 20; i++){
                         for(var j = 0; j < 20; j++){
                             if(Math.floor((pointerxy[0])/20) == i && Math.floor((pointerxy[1])/20) == j && typeof(editMode) == "number"){
@@ -219,14 +235,15 @@
                     frictionForce[0] = -gravity*friction*player.v.x
                     frictionForce[1] = -gravity*friction*player.v.y
                 }
-                document.getElementById("edit").innerHTML = status
+                
+                document.getElementById("edit").innerHTML = status + ', <br>' + player.v.x + ', <br>' + player.v.y
             }
             function pointerPress(event) {
                 if(editMode == "playing"){
                     player.v.x  = (event.x - c.offsetLeft - 10 - player.x)/100*speed
                     player.v.y  = (event.y - c.offsetTop - 10 - player.y)/100*speed
                 }
-                pointerpressingistrue = true
+                pressedpointer = true
             }
             function changeMode(e) {
                 editMode = e
@@ -257,8 +274,9 @@
                 startPos[1] = Number(document.getElementById('load').value.split(',')[401]);
             }
             function moveStartPos() {
-                startPos[0] = Number(document.getElementById('startPosition').value.split(',')[0]);
-                startPos[1] = Number(document.getElementById('startPosition').value.split(',')[1])
+                var startPosition = document.getElementById('startPosition').value
+                startPos[0] = Number(startPosition.split(',')[0]);
+                startPos[1] = Number(startPosition.split(',')[1])
             }
             function arrowKeyMove(event) {
                 if(editMode == "playing"){
@@ -271,14 +289,26 @@
             }
             window.setInterval(inGame, 1)
             window.setInterval(function() {
-                if(pressedKey.w && (status[1] == 1 || status[4] == 1)){
-                    player.v.y = -1.4;
+                if(pressedKey.w){
+                    if(climbing && status[3] ==1){
+                        player.v.y = -1
+                    }
+                    if(status[1] == 1){
+                        player.v.y = -1.4;  
+                    }
+                    if(status[4] == 1){
+                        player.v.y -= waterDensity
+                    }
+                    if(status[0] == 1){
+                        player.v.y -= airDensity
+                    }
                     status[1] = 0
                 }
-                
-                if(pressedKey.s && status[0] == 1){
+                if(pressedKey.s){
                     player.a.y = 0.1;
-                    player.v.x = 0
+                    if(status[1] == 1){
+                        player.v.x = 0
+                    }
                 }else{
                     player.a.y = 0
                 }
