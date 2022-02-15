@@ -21,7 +21,7 @@ exports.users_list = function(req, res, next) {
       .exec(function (err, list_users) {
         if (err) { return next(err); }
         //Successful, so render
-        res.render('list of users', { title: 'Users List', users_list: list_users });
+        res.render('users_list', { title: 'List of users', user_list: list_users });
     });
   
 };  
@@ -42,14 +42,14 @@ exports.users_detail = function(req, res, next) {
             return next(err);
         }
         // Successful, so render.
-        res.render('users_detail', { title: 'Users Detail', users: results.users, users_books: results.users_books } );
+        res.render('users_detail', { title: 'Users Detail', users: results.users} );
     });
 
 };
 
 // Display Users create form on GET.
 exports.users_create_get = function(req, res, next) {
-    res.render('users_form', { title: 'Create User'});
+    res.render('users_form', { title: 'Sign up'});
 };
 
 // Handle Users create on POST.
@@ -68,12 +68,55 @@ exports.users_create_post = [
 
         if (!errors.isEmpty()) {
             // There are errors. Render form again with sanitized values/errors messages.
-            res.render('users_form', { title: 'Create an account', users: req.body, errors: errors.array() });
+            res.render('users_form', { title: 'Sign up', users: req.body, errors: errors.array() });
             return;
         }
         else {
             // Data from form is valid.
 
+            // Create an Users object with escaped and trimmed data.
+            var users = new Users(
+                {
+                    username: req.body.username,
+                    password: req.body.password,
+                });
+            users.save(function (err) {
+                if (err) { return next(err); }
+                // Successful - redirect to new users record.
+                res.redirect(users.url);
+            });
+        }
+    }
+];
+
+// Display Users create form on GET.
+exports.users_login_get = function(req, res, next) {
+    res.render('users_login', { title: 'Log in'});
+};
+
+// Handle Users create on POST.
+exports.users_login_post = [
+
+    // Validate and sanitize fields.
+    body('username').trim().isLength({ min: 1 }).escape().withMessage('username must be specified.'),
+    body('password').trim().isLength({ min: 1 }).escape().withMessage('password must be specified.'),
+
+    // Process request after validation and sanitization.
+    (req, res, next) => {
+
+        // Extract the validation errors from a request.
+        const errors = validationResult(req);
+
+        if (!errors.isEmpty()) {
+            // There are errors. Render form again with sanitized values/errors messages.
+            res.render('users_login', { title: 'Log in', users: req.body, errors: errors.array() });
+            return;
+        }
+        else {
+            // Data from form is valid.
+            if(req.body.username == Users.find().username){
+                console.log(Users.find().username)
+            }
             // Create an Users object with escaped and trimmed data.
             var users = new Users(
                 {

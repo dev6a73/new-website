@@ -7,6 +7,13 @@ var user_controller = require('../controllers/userController');
 // GET catalog home page.
 router.get('/', user_controller.index);
 
+// GET request for list of all user items.
+router.get('/lists?', user_controller.users_list);
+
+router.get('/login', user_controller.users_login_get)
+
+router.post('/login', user_controller.users_login_post)
+
 // GET request for creating a user. NOTE This must come before routes that display user (uses id).
 router.get('/create', user_controller.users_create_get);
 
@@ -27,9 +34,6 @@ router.post('/:id/update', user_controller.users_update_post);
 
 // GET request for one user.
 router.get('/:id', user_controller.users_detail);
-
-// GET request for list of all user items.
-router.get('/list', user_controller.users_list);
 
 
 module.exports = router;

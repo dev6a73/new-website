@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <title>main page</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="stylesheet" type="text/css" href="/stylesheets/stylesheet.css">
+    <link rel="stylesheet" type="text/css" href="stylesheets/stylesheet.css" id="style">
 </head>
 
 <body>
@@ -19,15 +19,3 @@
         <li><a href="users">user</a></li>
     </ul>
     <div class="main">
-        
-        <h2>Hello, World!</h2>
-        <p class="indented">Welcome to my website!
-            Feel free to leave a suggestion.</p>
-        <input type="button" class="button" onclick="window.location.href = './users/create'" value="log in">
-        <br>
-        <input type="text" class="button" id="comment" placeholder="enter a comment">
-        <input type="submit" class="button" onclick="addcomment()" value="submit">
-    </div>
-</body>
-
-</html>

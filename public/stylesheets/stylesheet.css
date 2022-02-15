@@ -28,6 +28,7 @@ a:hover{
     padding: 5px 10px 5px 10px;
     font-size: 15px;
     cursor: pointer;
+    color: #000;
 }
 .indented {
     text-indent: 1em;
