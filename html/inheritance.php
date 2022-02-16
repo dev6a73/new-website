@@ -11,7 +11,7 @@
 <body>
     <h1>Title</h1>
     <ul class="menu">
-        <li><a href="index.html">main</a></li>
+        <li><a href="index.php">main</a></li>
         <li><a href="shooting game.html">game</a></li>
         <li><a href="mailto:no-reply@accounts.google.com">mail</a></li>
         <li><a href="https://en.wikipedia.org/wiki/Blog">blog</a></li>

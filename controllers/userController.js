@@ -89,12 +89,12 @@ exports.users_create_post = [
     }
 ];
 
-// Display Users create form on GET.
+// Display Users login form on GET.
 exports.users_login_get = function(req, res, next) {
     res.render('users_login', { title: 'Log in'});
 };
 
-// Handle Users create on POST.
+// Handle Users login on POST.
 exports.users_login_post = [
 
     // Validate and sanitize fields.
@@ -114,15 +114,9 @@ exports.users_login_post = [
         }
         else {
             // Data from form is valid.
-            if(req.body.username == Users.find().username){
-                console.log(Users.find().username)
-            }
+
             // Create an Users object with escaped and trimmed data.
-            var users = new Users(
-                {
-                    username: req.body.username,
-                    password: req.body.password,
-                });
+            var users
             users.save(function (err) {
                 if (err) { return next(err); }
                 // Successful - redirect to new users record.

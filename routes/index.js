@@ -1,9 +1,12 @@
 var express = require('express');
 var router = express.Router();
+var exec = require("child_process").exec;
 
 // GET home page.
-router.get('/', function(req, res) {
-  res.sendFile("index.html", {root: "html"})
+router.get('/', function(req, res){
+  exec("php html/index.php", function (error, stdout, stderr) {
+    res.send(stdout);
+  });
   express.static(__dirname + '/public')
 });
 
@@ -16,12 +19,6 @@ router.get('/shooting game.html', function(req, res) {
   res.sendFile("shooting game.html", {root: "html"})
   express.static(__dirname + '/public')
 });
-
-router.get('/layout', function(req, res) {
-  res.sendFile("layout.html", {root: "html"})
-  express.static(__dirname + '/public')
-  express.static(__dirname + '/html')
-})
 
 router.get('/index.html', function(req, res) {
   res.redirect('/')
