@@ -9,7 +9,10 @@ block content
       input#username.form-control(type='text', placeholder='username' name='username' required='true' value=(undefined===user ? '' : user.username) )
     div.form-group
       label(for='password') Password:
-      input#password.form-control(type='text', placeholder='password' name='password' value=(undefined===user ? '' : user.password) required='true')
+      input#password.form-control(type='password', placeholder='password' name='password' value=(undefined===user ? '' : user.password) required='true')
+    div.form-group
+      label(for="remember") remember this account
+      input#remember.form-control(type='checkbox')
     button.btn.btn-primary(type='submit') Submit
   if errors
     ul

@@ -10,17 +10,21 @@ router.get('/', function(req, res){
   express.static(__dirname + '/public')
 });
 
-router.get('/platform game.html', function(req, res) {
-  res.sendFile("platform game.html", {root: "html"})
+router.get('/platform_game.php', function(req, res) {
+  exec("php html/platform_game.php", function (error, stdout, stderr) {
+    res.send(stdout);
+  });
   express.static(__dirname + '/public')
 });
 
-router.get('/shooting game.html', function(req, res) {
-  res.sendFile("shooting game.html", {root: "html"})
+router.get('/shooting_game.php', function(req, res) {
+  exec("php html/shooting_game.php", function (error, stdout, stderr) {
+    res.send(stdout);
+  });
   express.static(__dirname + '/public')
 });
 
-router.get('/index.html', function(req, res) {
+router.get('/index.php', function(req, res) {
   res.redirect('/')
 });
 

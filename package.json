@@ -21,7 +21,9 @@
     "luxon": "^2.3.0",
     "mongoose": "^6.1.7",
     "morgan": "~1.9.1",
-    "pug": "2.0.0-beta11"
+    "node-localstorage": "^2.2.1",
+    "pug": "2.0.0-beta11",
+    "sessionstorage": "^0.1.0"
   },
   "devDependencies": {
     "hint": "^6.1.9"

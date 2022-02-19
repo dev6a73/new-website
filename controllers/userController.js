@@ -2,7 +2,10 @@ var Users = require('../models/user_model');
 
 var async = require('async');
 
+var store2 = require('store2')
+
 const { body,validationResult } = require('express-validator');
+const { default: store } = require('store2');
 
 exports.index = function(req, res) {
     async.parallel({
@@ -100,6 +103,7 @@ exports.users_login_post = [
     // Validate and sanitize fields.
     body('username').trim().isLength({ min: 1 }).escape().withMessage('username must be specified.'),
     body('password').trim().isLength({ min: 1 }).escape().withMessage('password must be specified.'),
+    body('remember').trim(),
 
     // Process request after validation and sanitization.
     (req, res, next) => {
@@ -114,13 +118,25 @@ exports.users_login_post = [
         }
         else {
             // Data from form is valid.
-
-            // Create an Users object with escaped and trimmed data.
-            var users
-            users.save(function (err) {
-                if (err) { return next(err); }
-                // Successful - redirect to new users record.
-                res.redirect(users.url);
+            Users.find()
+              .sort([['username', 'ascending']])
+              .exec(function (err, list_users) {
+                //Successful, so render
+                for(var i = 0; i < list_users.length; i++){
+                    if(list_users[i].username == req.body.username && list_users[i].password == req.body.password){
+                        var users_url = list_users[i]._id
+                        if (err) { return next(err); }
+                        // Successful - redirect to new users record.
+                        if(req.body.remember = true){
+                            store2.local('account', users_url)
+                        } else {
+                            store2.session('account', users_url)
+                        }
+                        res.redirect(users_url);
+                    } else if(list_users[i].username == req.body.username && list_users[i].password != req.body.password){
+                        res.send("<script type='text/javascript'>alert('wrong password'); window.location.href='/login'</script>")
+                    }
+                }
             });
         }
     }
@@ -236,3 +252,4 @@ exports.users_update_post = [
         }
     }
 ];
+exports.nowacc = store2.get("account")

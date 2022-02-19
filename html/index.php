@@ -1,4 +1,7 @@
-        <?php include("inheritance.php")?>
+        <?php 
+            $title = "index";
+            include("inheritance.php");
+        ?>
         <h2>Hello, World!</h2>
         <p class="indented">Welcome to my website!
             Feel free to leave a suggestion.</p>

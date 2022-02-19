@@ -1,5 +1,5 @@
 var pressedKey = {};
-var canvas = document.getElementById("canvas");
+var canvas = document.getElementById("canvas2");
 var ctx = canvas.getContext("2d");
 var winnerText = document.getElementById("winner")
 var isGamePlaying = false
