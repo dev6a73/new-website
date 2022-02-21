@@ -33,3 +33,23 @@ a:hover{
 .indented {
     text-indent: 1em;
 }
+#canvas1 {
+    background-color: #123;
+}
+#Advanced {
+    display: none;
+}
+#winner {
+    position: relative;
+    top: -250px;
+    margin-left: 150px;
+    font-size: 20px;
+    color: #111;
+}
+#canvas2 {
+    margin-top: 40px;
+    background-color: #EEE;
+}
+details {
+    margin:8px;
+}

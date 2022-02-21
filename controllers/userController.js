@@ -134,7 +134,8 @@ exports.users_login_post = [
                         }
                         res.redirect(users_url);
                     } else if(list_users[i].username == req.body.username && list_users[i].password != req.body.password){
-                        res.send("<script type='text/javascript'>alert('wrong password'); window.location.href='/login'</script>")
+                        alert('wrong password or/and username')
+                        window.location.href = '/login'
                     }
                 }
             });
@@ -252,4 +253,3 @@ exports.users_update_post = [
         }
     }
 ];
-exports.nowacc = store2.get("account")

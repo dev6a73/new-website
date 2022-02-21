@@ -8,36 +8,13 @@
     ?>
     <title>main page</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'unsafe-inline' 'self' 'https://localhost:3000'; script-src-elem 'self' 'unsafe-inline'; script-src-attr 'unsafe-hashes';">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'unsafe-eval' 'unsafe-inline' 'self' ; script-src-elem 'self' 'unsafe-inline'; script-src-attr 'unsafe-hashes';">
+    <meta name="description" content="">
     <link rel="stylesheet" type="text/css" href="stylesheets/stylesheet.css" id="style">
-    <style>
-        #canvas1 {
-            background-color: #123;
-        }
-        #Advanced {
-            display: none;
-        }
-        #winner {
-            position: relative;
-            top: -250px;
-            margin-left: 150px;
-            font-size: 20px;
-            color: #111;
-        }
-        #canvas2 {
-            margin-top: 40px;
-            background-color: #EEE;
-        }
-        details {
-            margin:8px;
-        }
-    </style>
-    <script>
-        var user_controller = require('../controllers/userController');
-        <?php
-            $nowacc = "<script>document.write(user_controller.nowacc)</script>"
-        ?>
-    </script>
+    <?php
+        //$nowacc = require("../controllers/userController")
+    ?>
+    <script src="javascripts/storage.js"></script>
 </head>
 
 <body>
@@ -50,7 +27,7 @@
         <li><a href="https://www.youtube.com/watch?v=dQw4w9WgXcQ">video</a></li>
         <li><a href="users">user</a></li>
         <?php
-            echo "account: <br>{$nowacc}"
+            //echo "account: <br>{$nowacc}"
         ?>
     </ul>
     

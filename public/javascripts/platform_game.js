@@ -29,7 +29,7 @@ var pressedpointer = false
 var climbing = true
 var pointerxy = [0, 0]
 var pressedKey = {}
-let status = [0, 0, 0, 0, 0];//[air, ground, x, wall, water]
+let touchStatus = [0, 0, 0, 0, 0];//[air, ground, x, wall, water]
 function platform(x, y, c, d) {
     var collision = x+20>=player.x+1 && x<=player.x+19 && y+20>=player.y+1 && y<=player.y+19
     if(d == 1){
@@ -53,23 +53,23 @@ function platform(x, y, c, d) {
         c = false
     }
     ctx.fillRect(x, y, 20, 20)
-    if(collision && d==0){
-        status[0] = 1
+    if(collision && (d==0 || d==3)){
+        touchStatus[0] = 1
     }
     if(x+20>=player.x+2 && x<=player.x+18 && player.y+20 >= y && d==1 && y>=player.y-15){
-        status[1] = 1
+        touchStatus[1] = 1
     }
     if(x+20>=player.x+2 && x<=player.x+18 && player.y+20 >= y && d==3 && y>=player.y-5 && c[4] != false){
-        status[1] = 1
+        touchStatus[1] = 1
     }
     if(collision && player.y <= y-15 && c[0] && ((c[4] != false && d==3) || d!=3)){
         player.v.y = -Math.abs(player.v.y)*rebound_ratio
         player.y -= 1
-        status[1] = 1
+        touchStatus[1] = 1
     }//up
     
     if(collision && d==4){
-        status[4] = 1
+        touchStatus[4] = 1
     }
     if(collision && player.y >= y+15 && c[1]){
         player.v.y = Math.abs(player.v.y)*rebound_ratio
@@ -79,12 +79,12 @@ function platform(x, y, c, d) {
     if(collision && player.x+10 <= x && c[2] && x-player.x-10>player.y-y){
         player.x -= 1
         player.v.x = -Math.abs(player.v.x)*rebound_ratio
-        status[3] = 1
+        touchStatus[3] = 1
     }//left
     if(collision && player.x >= x+10 && c[3] && player.x-x-10>player.y-y){
         player.x += 1
         player.v.x = Math.abs(player.v.x)*rebound_ratio
-        status[3] = 1
+        touchStatus[3] = 1
     }//right
     if(collision && d == 2 && editMode == "playing"){
         player = {
@@ -99,29 +99,33 @@ function platform(x, y, c, d) {
     }
 }
 function inGame() {
-    ctx.clearRect(0, 0, c.width, c.height)
+    //ctx.clearRect(0, 0, c.width, c.height)
 
-    status = [0, 0, 0, 0, 0]
+    touchStatus = [0, 0, 0, 0, 0]
     for(var i = 0; i < 20; i++){
         for(var j = 0; j < 20; j++){
-            collisionDetector = [true, true, true, true]
-            if(all[20*i+j+1] == 1 && j != 19){
-                collisionDetector[1] = false
-            }
-            if(all[20*i+j-1] == 3 && j != 0){
-                collisionDetector[4] = false
-            }
-            if(all[20*i+j-1] == 1 && j != 0){
-                collisionDetector[0] = false
-            }
-            if(all[20*i+j+20] == 1 && i != 19){
-                collisionDetector[3] = false
-            }
-            if(all[20*i+j-20] == 1 && i != 0){
-                collisionDetector[2] = false
-            }
-            if(all[20*i+j] >= 0){
-                platform(i*20, j*20, collisionDetector, all[20*i+j])
+            if(Math.floor(player.y/20-1) < i < Math.floor(player.y/20+2) && Math.floor(player.x/20-1) < j < Math.floor(player.x/20+2)){
+                collisionDetector = [true, true, true, true]
+                if(all[20*i+j+1] == 1 && j != 19){
+                    collisionDetector[1] = false
+                }
+                if(all[20*i+j-1] == 3 && j != 0){
+                    collisionDetector[4] = false
+                }
+                if(all[20*i+j-1] == 1 && j != 0){
+                    collisionDetector[0] = false
+                }
+                if(all[20*i+j+20] == 1 && i != 19){
+                    collisionDetector[3] = false
+                }
+                if(all[20*i+j-20] == 1 && i != 0){
+                    collisionDetector[2] = false
+                }
+                if(all[20*i+j] >= 0){
+                    platform(i*20, j*20, collisionDetector, all[20*i+j])
+                }
+            } else {
+                platform(i*20, j*20, [], all[20*i+j])
             }
         }
     }
@@ -134,10 +138,10 @@ function inGame() {
     if(player.v.y < -20){
         player.v.y = -20
     }
-    if(player.v.y > 10){
-        player.v.y = 10
+    if(player.v.y > 20){
+        player.v.y = 20
     }
-    if(editMode == "playing"){
+    if(editMode == "playing" || editMode == -1){
         player.x += player.v.x;
         player.v.x += player.a.x;
         player.y += player.v.y;
@@ -159,35 +163,27 @@ function inGame() {
     }
     ctx.fillStyle = "#26A"
     ctx.fillRect(player.x, player.y, 20, 20)
-    if(pressedpointer){
-        for(var i = 0; i < 20; i++){
-            for(var j = 0; j < 20; j++){
-                if(Math.floor((pointerxy[0])/20) == i && Math.floor((pointerxy[1])/20) == j && typeof(editMode) == "number"){
-                    all[20*i+j] = editMode
-                }
-            }   
-        }
+    if(pressedpointer && typeof(editMode) == "number"){
+        all[20*(Math.floor((pointerxy[0])/20))+Math.floor((pointerxy[1])/20)] = editMode
     }
-    if(status[0] == 1){
+    if(touchStatus[0] == 1){
         dragForce[0] = -(1/2)*airDensity*player.v.x*player.v.x*Math.sign(player.v.x)
         dragForce[1] = -(1/2)*airDensity*player.v.y*player.v.y*Math.sign(player.v.y)
         buoyancy = -airDensity*gravity
         frictionForce[0] = 0
         frictionForce[1] = 0
     }
-    if(status[4] == 1){
+    if(touchStatus[4] == 1){
         dragForce[0] = -(1/2)*waterDensity*player.v.x*player.v.x*Math.sign(player.v.x)
         dragForce[1] = -(1/2)*waterDensity*player.v.y*player.v.y*Math.sign(player.v.y)
         buoyancy = -waterDensity*gravity
         frictionForce[0] = 0
         frictionForce[1] = 0
     }
-    if(status[1] == 1){
+    if(touchStatus[1] == 1){
         frictionForce[0] = -gravity*friction*player.v.x
         frictionForce[1] = -gravity*friction*player.v.y
     }
-    
-    document.getElementById("edit").innerHTML = status + ', <br>' + player.v.x + ', <br>' + player.v.y
 }
 function pointerPress(event) {
     if(editMode == "playing"){
@@ -198,6 +194,9 @@ function pointerPress(event) {
 }
 function changeMode(e) {
     editMode = e
+    if(e == -1){
+        e = 'playing'
+    }
     if(e == 1){
         e = "editing(adding platform)"
     }
@@ -232,32 +231,50 @@ function moveStartPos() {
 function arrowKeyMove(event) {
     if(editMode == "playing"){
         pressedKey[event.key] = true;
-        
         document.addEventListener('keyup', (event) => {
-            delete this.pressedKey[event.key];
+            delete pressedKey[event.key];
         });
     }
 }
+function eventHandler() {
+    document.getElementById("canvas1").addEventListener("click", (event) => {pointerPress(event)})
+    document.getElementById("canvas1").addEventListener("pointerup", () => {pressedpointer = false})
+    document.getElementById("canvas1").addEventListener("pointermove", (event) => {pointerxy[0] = event.x - c.offsetLeft; pointerxy[1] = event.y - c.offsetTop;})
+    var changemode = document.getElementsByClassName("changemode");
+    changemode[0].addEventListener("click", () => {changeMode("playing")})
+    changemode[1].addEventListener("click", () => {changeMode(0)})
+    changemode[2].addEventListener("click", () => {changeMode(1)})
+    changemode[3].addEventListener("click", () => {changeMode(2)})
+    changemode[4].addEventListener("click", () => {changeMode(3)})
+    changemode[5].addEventListener("click", () => {changeMode(4)})
+    
+    document.addEventListener("keypress", (event) => {arrowKeyMove(event)})
+    document.getElementById("advancedopener").addEventListener("click", () => {document.getElementById('Advanced').style.display = 'block'})
+    document.getElementById("applyStartPos").addEventListener("click", () => {moveStartPos()})
+    document.getElementById("save").addEventListener("click", () => save())
+    document.getElementById("load").addEventListener("keypress", () => load())
+}
 window.setInterval(inGame, 1)
+eventHandler()
 window.setInterval(function() {
     if(pressedKey.w){
-        if(climbing && status[3] ==1){
+        if(climbing && touchStatus[3] ==1){
             player.v.y = -1
         }
-        if(status[1] == 1){
+        if(touchStatus[1] == 1){
             player.v.y = -1.4;  
         }
-        if(status[4] == 1){
+        if(touchStatus[4] == 1){
             player.v.y -= waterDensity
         }
-        if(status[0] == 1){
+        if(touchStatus[0] == 1){
             player.v.y -= airDensity
         }
-        status[1] = 0
+        touchStatus[1] = 0
     }
     if(pressedKey.s){
         player.a.y = 0.1;
-        if(status[1] == 1){
+        if(touchStatus[1] == 1){
             player.v.x = 0
         }
     }else{
