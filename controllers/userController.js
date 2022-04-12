@@ -2,17 +2,16 @@ var Users = require('../models/user_model');
 
 var async = require('async');
 
-var store2 = require('store2')
-
 const { body,validationResult } = require('express-validator');
-const { default: store } = require('store2');
 
-exports.index = function(req, res) {
+var account = {url: 'login',}
+
+exports.user_index = function(req, res) {
     async.parallel({
         user_count: function(callback) {
             Users.countDocuments({}, callback);
         },}, function(err, results) {
-            res.render('index', { title: 'Title', error: err, data: results });
+            res.render('user_index', { title: 'Title', error: err, data: results });
     });
 };
 
@@ -45,7 +44,7 @@ exports.users_detail = function(req, res, next) {
             return next(err);
         }
         // Successful, so render.
-        res.render('users_detail', { title: 'Users Detail', users: results.users} );
+        res.render('users_detail', { title: 'Users Detail', users: results.users, account: account.url, save: account.save} );
     });
 
 };
@@ -76,17 +75,30 @@ exports.users_create_post = [
         }
         else {
             // Data from form is valid.
-
-            // Create an Users object with escaped and trimmed data.
-            var users = new Users(
-                {
-                    username: req.body.username,
-                    password: req.body.password,
-                });
-            users.save(function (err) {
-                if (err) { return next(err); }
-                // Successful - redirect to new users record.
-                res.redirect(users.url);
+            Users.find()
+              .sort([['username', 'ascending']])
+              .exec(function (err, list_users) {
+                //Successful, so render
+                let found = false
+                for(var i = 0; i < list_users.length; i++){
+                    if(list_users[i].username == req.body.username){
+                        if (err) { return next(err); }
+                        found = true
+                        res.send("Error: this username is used by another client")
+                    }
+                }
+                if(!found) {
+                    var users = new Users(
+                        {
+                            username: req.body.username,
+                            password: req.body.password,
+                        });
+                    users.save(function (err) {
+                        if (err) { return next(err); }
+                        // Successful - redirect to new users record.
+                        res.redirect(users.url);
+                    });
+                }
             });
         }
     }
@@ -128,9 +140,15 @@ exports.users_login_post = [
                         if (err) { return next(err); }
                         // Successful - redirect to new users record.
                         if(req.body.remember = true){
-                            store2.local('account', users_url)
+                            account = {
+                                url: users_url,
+                                save: true,
+                            }
                         } else {
-                            store2.session('account', users_url)
+                            account = {
+                                url: users_url,
+                                save: false,
+                            }
                         }
                         res.redirect(users_url);
                     } else if(list_users[i].username == req.body.username && list_users[i].password != req.body.password){
@@ -150,16 +168,13 @@ exports.users_delete_get = function(req, res, next) {
         users: function(callback) {
             Users.findById(req.params.id).exec(callback)
         },
-        users_books: function(callback) {
-            Book.find({ 'users': req.params.id }).exec(callback)
-        },
     }, function(err, results) {
         if (err) { return next(err); }
         if (results.users==null) { // No results.
             res.redirect('/catalog/users');
         }
         // Successful, so render.
-        res.render('users_delete', { title: 'Delete this account', users: results.users, users_books: results.users_books } );
+        res.render('users_delete', { title: 'Delete this account', users: results.users} );
     });
 
 };
@@ -171,25 +186,15 @@ exports.users_delete_post = function(req, res, next) {
         users: function(callback) {
         Users.findById(req.body.usersid).exec(callback)
         },
-        users_books: function(callback) {
-        Book.find({ 'users': req.body.usersid }).exec(callback)
-        },
     }, function(err, results) {
         if (err) { return next(err); }
         // Success
-        if (results.users_books.length > 0) {
-            // Users has books. Render in same way as for GET route.
-            res.render('users_delete', { title: 'Delete this account', users: results.users, users_books: results.users_books } );
-            return;
-        }
-        else {
-            // Users has no books. Delete object and redirect to the list of users.
-            Users.findByIdAndRemove(req.body.usersid, function deleteUsers(err) {
-                if (err) { return next(err); }
-                // Success - go to users list
-                res.redirect('/catalog/users')
-            })
-        }
+        // Users has no books. Delete object and redirect to the list of users.
+        Users.findByIdAndRemove(req.body.usersid, function deleteUsers(err) {
+            if (err) { return next(err); }
+            // Success - go to users list
+            res.redirect('/catalog/users')
+        })
     });
 };
 
@@ -217,39 +222,47 @@ exports.users_update_post = [
         .isAlphanumeric().withMessage('First name has non-alphanumeric characters.'),
     body('password').trim().isLength({ min: 1 }).escape().withMessage('Family name must be specified.')
         .isAlphanumeric().withMessage('Family name has non-alphanumeric characters.'),
-    body('date_of_birth', 'Invalid date of birth').optional({ checkFalsy: true }).isISO8601().toDate(),
-    body('date_of_death', 'Invalid date of death').optional({ checkFalsy: true }).isISO8601().toDate(),
-
 
     // Process request after validation and sanitization.
     (req, res, next) => {
 
         // Extract the validation errors from a request.
         const errors = validationResult(req);
-
-        // Create Users object with escaped and trimmed data (and the old id!)
-        var users = new Users(
-            {
-                username: req.body.username,
-                password: req.body.password,
-                date_of_birth: req.body.date_of_birth,
-                date_of_death: req.body.date_of_death,
-                _id: req.params.id
+        Users.find()
+            .sort([['username', 'ascending']])
+            .exec(function (err, list_users) {
+            //Successful, so render
+            let found = false
+            for(var i = 0; i < list_users.length; i++){
+                if(list_users[i].username == req.body.username){
+                    if (err) { return next(err); }
+                    found = true
+                    res.send("Error: this username is used by another client")
+                }
+                if(!found) {
+                    // Create Users object with escaped and trimmed data (and the old id!)
+                    var users = new Users(
+                        {
+                            username: req.body.username,
+                            password: req.body.password,
+                            _id: req.params.id
+                        }
+                    );
+                    if (!errors.isEmpty()) {
+                        // There are errors. Render the form again with sanitized values and error messages.
+                        res.render('users_form', { title: 'Update the account', users: users, errors: errors.array() });
+                        return;
+                    }
+                    else {
+                        // Data from form is valid. Update the record.
+                        Users.findByIdAndUpdate(req.params.id, users, {}, function (err, theusers) {
+                            if (err) { return next(err); }
+                            // Successful - redirect to genre detail page.
+                            res.redirect(theusers.url);
+                        });
+                    }
+                }
             }
-        );
-
-        if (!errors.isEmpty()) {
-            // There are errors. Render the form again with sanitized values and error messages.
-            res.render('users_form', { title: 'Update the account', users: users, errors: errors.array() });
-            return;
-        }
-        else {
-            // Data from form is valid. Update the record.
-            Users.findByIdAndUpdate(req.params.id, users, {}, function (err, theusers) {
-                if (err) { return next(err); }
-                // Successful - redirect to genre detail page.
-                res.redirect(theusers.url);
-            });
-        }
+        })   
     }
 ];

@@ -13,7 +13,9 @@ block content
     div.form-group
       label(for="remember") remember this account
       input#remember.form-control(type='checkbox')
-    button.btn.btn-primary(type='submit') Submit
+    button.btn.btn-primary(type='submit') Log in
+  hr
+  a(href="/users/create") create account
   if errors
     ul
       for error in errors

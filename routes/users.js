@@ -5,7 +5,7 @@ var router = express.Router();
 var user_controller = require('../controllers/userController');
 
 // GET catalog home page.
-router.get('/', user_controller.index);
+router.get('/', user_controller.user_index);
 
 // GET request for list of all user items.
 router.get('/lists?', user_controller.users_list);

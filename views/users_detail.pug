@@ -12,8 +12,10 @@ block content
     dl
       dt #{users.username}
       dd #{users.data}
+    script.
+      window.sessionStorage.setItem('account', JSON.stringify({url: '#{account}', username: '#{users.username}', save: '#{save}'}));
     hr
     p
-      a(href=users.url+'/delete') Delete users
+      a(href=users.url+'/logout') log out
     p
-      a(href=users.url+'/update') Update users
+      a(href=users.url+'/update') Edit

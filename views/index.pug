@@ -1,12 +1,9 @@
 extends layout
 
 block content
-  h1= title
-  p ??
-
-  h1 content
-
-  if error
-    p Error getting dynamic content.
-  else
-    p There are !{data.user_count} users
+  h2= title
+  p(class="indented") Welcome to my website! Feel free to leave a suggestion.
+  br
+  input(type="text" class="button" id="comment" placeholder="enter a comment")
+  br
+  input(type="submit" class="button" onclick="addcomment()" value="submit")

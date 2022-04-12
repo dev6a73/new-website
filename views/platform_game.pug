@@ -1,0 +1,24 @@
+extends layout
+
+block content
+	h2 Platform Game
+	p
+	canvas(id="canvas1" width="400px" height="400px")
+	br
+	input(type="button" class="button changemode" value="play")
+	input(type="button" class="button changemode" value="erase")
+	input(type="button" class="button changemode" value="add platform")
+	input(type="button" class="button changemode" value="add x")
+	input(type="button" class="button changemode" value="add ?")
+	input(type="button" class="button changemode" value="add water")
+	br
+	br
+	input(type="button" class="button" value="Advanced" id="advancedopener")
+	div(id="Advanced")
+		br
+		input(type="text" class="button" placeholder="start position ex.) 60, 340" id="startPosition")
+		input(type="button" class="button" value="apply" id="applyStartPos")
+	p(id="edit")
+	input(type="button" class="button" value="save" id="save")
+	input(type="text" class="button" placeholder="load" id="load")
+	script(src="/javascripts/platform_game.js") 
