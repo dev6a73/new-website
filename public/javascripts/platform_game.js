@@ -120,6 +120,19 @@ var mouseX, mouseY;
         mouseY = event.pageY
     }
 })();
+var Physics = {
+    intersects: (a, b, c, d, p, q, r, s, e) => {
+        var det, gamma, lambda;
+        det = (c - a) * (s - q) - (r - p) * (d - b);
+        if (det === 0) {
+            return false;
+        } else {
+            lambda = ((s - q) * (r - a) + (p - r) * (s - b)) / det;
+            gamma = ((b - d) * (r - a) + (c - a) * (s - b)) / det;
+            return (0 < lambda && lambda < 1) && (0 < gamma && gamma < 1);
+        }
+    }
+}
 class Virtex {
     constructor(x, y) {
         this.x = x
@@ -150,12 +163,27 @@ class Polygons {
     draw() {
         this.line.forEach(line => line.draw())
     }
+    detectCollision(x, y) {
+        for (var i = 0; i < this.line.length; i++) {
+            if (Physics.intersects(this.line[i].point1.x, this.line[i].point1.y, this.line[i].point2.x, this.line[i].point2.y, x, y+20, x + 20, y + 20, 1)) {
+                return true
+            }
+        }
+        return false
+    }
 }
 var a = new Polygons([40, 360], [57.5, 380], [82.5, 380], [100, 360])
 function inGame() {
+    ctx.clearRect(0, 0, c.width, c.height)
     touchStatus = [0, 0, 0, 0, 0]
     for (var i = 0; i < 1; i++) {
         a.draw()
+        if (a.detectCollision(player.x, player.y)) {
+            touchStatus[1] = 1
+            player.y -= Math.abs(player.v.y)*2
+        } else {
+            touchStatus[0] = 1
+        }
     }
     if (player.v.x > 20) {
         player.v.x = 20
