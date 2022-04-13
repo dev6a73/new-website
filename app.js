@@ -24,6 +24,7 @@ var db = mongoose.connection;
 db.on('error', console.error.bind(console, 'MongoDB connection error:'));
 
 // view engine setup
+
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'pug');
 
@@ -39,7 +40,7 @@ app.use('/', indexRouter);
 app.use('/users', usersRouter);
 app.use(favicon(__dirname + '/public/images/favicon.ico'));
 
-app.get('/users/:userid', function (req, res) {
+app.get('/', function (req, res) {
   res.send(req.params);
 })
 

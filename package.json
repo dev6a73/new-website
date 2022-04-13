@@ -19,6 +19,7 @@
     "helmet": "^5.0.2",
     "http-errors": "~1.6.3",
     "luxon": "^2.3.0",
+    "matter-js": "^0.18.0",
     "mongoose": "^6.1.7",
     "morgan": "~1.9.1",
     "node-localstorage": "^2.2.1",

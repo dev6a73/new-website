@@ -1,3 +1,5 @@
+//import Matter from 'https://cdn.skypack.dev/matter-js'
+
 var c = document.getElementById("canvas1");
 var ctx = c.getContext("2d")
 var startPos = [60, 340]
@@ -122,10 +124,15 @@ var mouseX, mouseY;
 })();
 var Physics = {
     intersects: (a, b, c, d, p, q, r, s, e) => {
-        var det, gamma, lambda;
+        var det, gamma, lambda, slope;
         det = (c - a) * (s - q) - (r - p) * (d - b);
+        slope = (d - b) / (c - a)
         if (det === 0) {
-            return false;
+            if (Math.abs((b-slope*a)-(q-slope*p))<=e) {
+                return true
+            } else {
+                return false;
+            }
         } else {
             lambda = ((s - q) * (r - a) + (p - r) * (s - b)) / det;
             gamma = ((b - d) * (r - a) + (c - a) * (s - b)) / det;
@@ -163,27 +170,35 @@ class Polygons {
     draw() {
         this.line.forEach(line => line.draw())
     }
-    detectCollision(x, y) {
+    lineCollision(x1, y1, x2, y2) {
         for (var i = 0; i < this.line.length; i++) {
-            if (Physics.intersects(this.line[i].point1.x, this.line[i].point1.y, this.line[i].point2.x, this.line[i].point2.y, x, y+20, x + 20, y + 20, 1)) {
+            if (Physics.intersects(this.line[i].point1.x, this.line[i].point1.y, this.line[i].point2.x, this.line[i].point2.y, x1, y1, x2, y2, 1)) {
                 return true
             }
         }
         return false
     }
 }
-var a = new Polygons([40, 360], [57.5, 380], [82.5, 380], [100, 360])
+var a =[new Polygons([40, 360], [57.5, 380], [82.5, 380], [100, 360]), new Polygons([160, 200], [180, 270], [230, 280], [320, 200]), new Polygons([80, 230], [110, 150], [100, 220])]
 function inGame() {
     ctx.clearRect(0, 0, c.width, c.height)
     touchStatus = [0, 0, 0, 0, 0]
-    for (var i = 0; i < 1; i++) {
-        a.draw()
-        if (a.detectCollision(player.x, player.y)) {
+    for (var i = 0; i < a.length; i++) {
+        a[i].draw()
+        if (a[i].lineCollision(player.x, player.y + 20, player.x + 20, player.y + 20)) {
             touchStatus[1] = 1
-            player.y -= Math.abs(player.v.y)*2
-        } else {
-            touchStatus[0] = 1
+            player.y -= Math.abs(player.v.y)
         }
+        if (a[i].lineCollision(player.x, player.y, player.x + 20, player.y)) {
+            player.y += Math.abs(player.v.y)
+        }
+         if (a[i].lineCollision(player.x+20, player.y + 20, player.x + 20, player.y)) {
+            player.x -= Math.abs(player.v.x)
+        } if (a[i].lineCollision(player.x, player.y + 20, player.x , player.y )) {
+            player.x += Math.abs(player.v.x)
+        } 
+            touchStatus[0] = 1
+        
     }
     if (player.v.x > 20) {
         player.v.x = 20
@@ -329,14 +344,6 @@ function movement() {
             player.v.y -= jumpheight * Math.abs(airDensity) ** 0.5 * gravity ** 0.5
         }
         touchStatus[1] = 0
-    }
-    if (pressedKey.s) {
-        player.a.y = 0.1;
-        if (touchStatus[1] == 1) {
-            player.v.x = 0
-        }
-    } else {
-        player.a.y = 0
     }
     if (pressedKey.d) {
         if (player.v.x <= speed) {

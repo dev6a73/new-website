@@ -8,6 +8,7 @@ router.get('/', function(req, res){
 });
 
 router.get('/platform_game', function(req, res) {
+  res.set('Content-Security-Policy', "default-src 'self' 'unsafe-hashes' 'unsafe-inline'; style-src 'unsafe-inline' 'self'; script-src 'unsafe-inline' 'self' 'https://unpkg.com/@babel/standalone/babel.min.js';")
   res.render('platform_game', { title: 'platform game'});
 });
 
