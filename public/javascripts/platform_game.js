@@ -1,5 +1,5 @@
-import Matter from 'https://cdn.skypack.dev/matter-js'
-import mathjs from 'https://cdn.skypack.dev/mathjs';
+//import Matter from 'https://cdn.skypack.dev/matter-js'
+//import mathjs from 'https://cdn.skypack.dev/mathjs';
 
 var c = document.getElementById("canvas1");
 var ctx = c.getContext("2d")

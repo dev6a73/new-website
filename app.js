@@ -45,7 +45,6 @@ app.get('/', function (req, res) {
 })
 
 app.use(function(req, res, next) {
-  res.setHeader("Content-Security-Policy", "default-src 'self' 'unsafe-hashes' 'unsafe-inline'; style-src 'unsafe-inline' 'self'; script-src 'unsafe-inline' 'self' 'https://cdn.skypack.dev/';");
   return next();
 });
 
