@@ -1,8 +1,9 @@
-//import Matter from 'https://cdn.skypack.dev/matter-js'
+import Matter from 'https://cdn.skypack.dev/matter-js'
+import mathjs from 'https://cdn.skypack.dev/mathjs';
 
 var c = document.getElementById("canvas1");
 var ctx = c.getContext("2d")
-var startPos = [60, 340]
+var startPos = [50, 300]
 var player = {
     x: startPos[0],
     y: startPos[1],
@@ -26,6 +27,7 @@ var climbing = true
 var pointerxy = [0, 0]
 var pressedKey = {}
 let touchStatus = [0, 0, 0, 0, 0];//[air, ground, x, wall, water]
+var mousefocus = false
 /*function platform(x, y, c, d) {
     var collision = x + 20 >= player.x + 1 && x <= player.x + 19 && y + 20 >= player.y + 1 && y <= player.y + 19
     if (d == 1) {
@@ -98,7 +100,7 @@ let touchStatus = [0, 0, 0, 0, 0];//[air, ground, x, wall, water]
         buoyancy = 0;
     }
 }*/
-var mouseX, mouseY;
+var mouseX, mouseY, mousePress = 0;
 (function () {
     document.onmousemove = handleMouseMove;
     function handleMouseMove(event) {
@@ -118,27 +120,76 @@ var mouseX, mouseY;
                 (doc && doc.clientTop || body && body.clientTop || 0);
         }
 
-        mouseX = event.pageX
-        mouseY = event.pageY
+        mouseX = event.pageX - c.offsetLeft
+        mouseY = event.pageY - c.offsetTop
+        document.body.onmousedown = function () {
+            ++mousePress;
+        }
+        document.body.onmouseup = function () {
+            --mousePress;
+        }
     }
 })();
+const objectMap = (obj, fn) =>
+  Object.fromEntries(
+    Object.entries(obj).map(
+      ([k, v], i) => [k, fn(v, k, i)]
+    )
+  )
+
+function distToSegment(x, y, x1, y1, x2, y2) {
+
+    var A = x - x1;
+    var B = y - y1;
+    var C = x2 - x1;
+    var D = y2 - y1;
+
+    var dot = A * C + B * D;
+    var len_sq = C * C + D * D;
+    var param = -1;
+    if (len_sq != 0) //in case of 0 length line
+        param = dot / len_sq;
+
+    var xx, yy;
+
+    if (param < 0) {
+        xx = x1;
+        yy = y1;
+    }
+    else if (param > 1) {
+        xx = x2;
+        yy = y2;
+    }
+    else {
+        xx = x1 + param * C;
+        yy = y1 + param * D;
+    }
+
+    var dx = x - xx;
+    var dy = y - yy;
+    return Math.sqrt(dx * dx + dy * dy);
+}
+var circlelineintersectionpoint = function (x1, y1, x2, y2, x, y, r) {
+    var m = (y2 - y1) / (x2 - x1);
+    var c = (y1 - m * x1);
+    var A = m**2+1
+    var B = 2*(m*c-m*y-x)
+    var C = (c**2-r**2+x**2+y**2-2*c*y)
+    return [[(-B+Math.sqrt(B**2-4*A*C))/(2*A),m*((-B+Math.sqrt(B**2-4*A*C))/(2*A))+c],[(-B-Math.sqrt(B**2-4*A*C))/(2*A),m*((-B-Math.sqrt(B**2-4*A*C))/(2*A))+c]]
+
+}
 var Physics = {
-    intersects: (a, b, c, d, p, q, r, s, e) => {
-        var det, gamma, lambda, slope;
+    intersects: (a, b, c, d, p, q, r, s) => {
+        var det, gamma, lambda;
         det = (c - a) * (s - q) - (r - p) * (d - b);
-        slope = (d - b) / (c - a)
         if (det === 0) {
-            if (Math.abs((b-slope*a)-(q-slope*p))<=e) {
-                return true
-            } else {
-                return false;
-            }
+            return false;
         } else {
             lambda = ((s - q) * (r - a) + (p - r) * (s - b)) / det;
             gamma = ((b - d) * (r - a) + (c - a) * (s - b)) / det;
             return (0 < lambda && lambda < 1) && (0 < gamma && gamma < 1);
         }
-    }
+    },
 }
 class Virtex {
     constructor(x, y) {
@@ -161,44 +212,62 @@ class Segment {
         ctx.lineTo(this.point2.x, this.point2.y)
         ctx.stroke()
     }
+    moveStart(p1) {
+        this.point1 = p1
+    }
+    moveEnd(p2) {
+        this.point2 = p2
+    }
 }
 class Polygons {
-    constructor() {
-        this.points = Array.from({ length: arguments.length }, (_, j) => new Virtex(...(arguments[j])));
-        this.line = Array.from({ length: arguments.length }, (_, j) => new Segment(this.points[j], this.points[(j + 1) % this.points.length]));
+    constructor(settings, ...points) {
+        this.id = settings.id ?? null
+        this.points = Array.from({ length: points.length }, (_, j) => new Virtex(...(points[j])));
+        this.line = Array.from({ length: points.length }, (_, j) => new Segment(this.points[j], this.points[(j + 1) % this.points.length]));
     }
     draw() {
         this.line.forEach(line => line.draw())
     }
     lineCollision(x1, y1, x2, y2) {
         for (var i = 0; i < this.line.length; i++) {
-            if (Physics.intersects(this.line[i].point1.x, this.line[i].point1.y, this.line[i].point2.x, this.line[i].point2.y, x1, y1, x2, y2, 1)) {
+            if (Math.min(distToSegment(x1, y1, this.line[i].point1.x, this.line[i].point1.y, this.line[i].point2.x, this.line[i].point2.y), distToSegment(x2, y2, this.line[i].point1.x, this.line[i].point1.y, this.line[i].point2.x, this.line[i].point2.y)) < 1 || Physics.intersects(x1, y1, x2, y2, this.line[i].point1.x, this.line[i].point1.y, this.line[i].point2.x, this.line[i].point2.y)) {
                 return true
             }
         }
         return false
     }
+    move() {
+        for (var i = 0; i < this.points.length; i++) {
+            if (Math.abs(mouseX - this.points[i].x) < 10 && Math.abs(mouseY - this.points[i].y) < 10 && mousePress && !mousefocus || mousefocus == this.points[i]) {
+                mousefocus = this.points[i]
+                this.points[i].move(mouseX, mouseY)
+                this.line[i].moveStart(this.points[i])
+                this.line[i].moveEnd(this.points[(i + 1) % this.points.length])
+            } else if (!mousePress) {
+                mousefocus = false
+            }
+        }
+    }
 }
-var a =[new Polygons([40, 360], [57.5, 380], [82.5, 380], [100, 360]), new Polygons([160, 200], [180, 270], [230, 280], [320, 200]), new Polygons([80, 230], [110, 150], [100, 220])]
+var a = [
+    new Polygons({ id: 0x1 }, [0, 350], [0, 400], [400, 400], [400, 350], ...Array.from({ length: 20 }, (_, j) => [Math.random() * 10 - 5 + 400 - j * 20, Math.random() * 10 + 345]))
+]
 function inGame() {
     ctx.clearRect(0, 0, c.width, c.height)
     touchStatus = [0, 0, 0, 0, 0]
     for (var i = 0; i < a.length; i++) {
+        a[i].move()
         a[i].draw()
-        if (a[i].lineCollision(player.x, player.y + 20, player.x + 20, player.y + 20)) {
-            touchStatus[1] = 1
-            player.y -= Math.abs(player.v.y)
+        for (var j = 0; j < a[i].points.length; j++) {
+            if (distToSegment(player.x, player.y, a[i].points[j].x, a[i].points[j].y, a[i].points[(j + 1) % a[i].points.length].x, a[i].points[(j + 1) % a[i].points.length].y) < 20) {
+                touchStatus[1] = 1
+                var interpoint = circlelineintersectionpoint(a[i].points[j].x, a[i].points[j].y, a[i].points[(j + 1) % a[i].points.length].x, a[i].points[(j + 1) % a[i].points.length].y, player.x, player.y, 20)
+                player.x -= ((interpoint[0][0] + interpoint[1][0])/2 - player.x) * 0.15
+                player.y -= ((interpoint[0][1] + interpoint[1][1])/2 - player.y) * 0.15
+                objectMap(player.v, v => v *= 0.9)
+            }
         }
-        if (a[i].lineCollision(player.x, player.y, player.x + 20, player.y)) {
-            player.y += Math.abs(player.v.y)
-        }
-         if (a[i].lineCollision(player.x+20, player.y + 20, player.x + 20, player.y)) {
-            player.x -= Math.abs(player.v.x)
-        } if (a[i].lineCollision(player.x, player.y + 20, player.x , player.y )) {
-            player.x += Math.abs(player.v.x)
-        } 
-            touchStatus[0] = 1
-        
+        touchStatus[0] = 1
     }
     if (player.v.x > 20) {
         player.v.x = 20
@@ -232,8 +301,11 @@ function inGame() {
             v: { x: 0, y: 0 },
         }
     }
-    ctx.fillStyle = "#26A"
-    ctx.fillRect(player.x, player.y, 20, 20)
+
+    ctx.beginPath();
+    ctx.arc(player.x, player.y, 20, 0, 2 * Math.PI);
+    ctx.stroke();
+
     if (pressedpointer && typeof (editMode) == "number") {
         all[20 * (Math.floor((pointerxy[0]) / 20)) + Math.floor((pointerxy[1]) / 20)] = editMode
         pressedpointer = false
@@ -256,13 +328,6 @@ function inGame() {
         frictionForce[0] = -gravity * friction * player.v.x
         frictionForce[1] = -gravity * friction * player.v.y
     }
-}
-function pointerPress(event) {
-    if (editMode == "playing") {
-        player.v.x = (event.x - c.offsetLeft - 10 - player.x) / 100 * speed
-        player.v.y = (event.y - c.offsetTop - 10 - player.y) / 100 * speed
-    }
-    pressedpointer = true
 }
 function changeMode(e) {
     editMode = e
@@ -313,7 +378,6 @@ function arrowKeyMove(event) {
     }
 }
 function eventHandler() {
-    document.getElementById("canvas1").addEventListener("click", (event) => { pointerPress(event) })
     document.getElementById("canvas1").addEventListener("pointermove", (event) => { pointerxy[0] = event.x - c.offsetLeft; pointerxy[1] = event.y - c.offsetTop; })
     var changemode = document.getElementsByClassName("changemode");
     changemode[0].addEventListener("click", () => { changeMode("playing") })
