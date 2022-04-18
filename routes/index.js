@@ -8,7 +8,7 @@ router.get('/', function(req, res){
 });
 
 router.get('/platform_game', function(req, res) {
-  res.set("Content-Security-Policy", "default-src 'self' 'unsafe-hashes' 'unsafe-inline'; style-src 'unsafe-inline' 'self'; script-src 'unsafe-inline' 'self' https://cdn.skypack.dev; Cross-Origin-Resource-Policy 'cross-origin'");
+  res.set("Content-Security-Policy", "default-src 'self' 'unsafe-hashes' 'unsafe-inline'; style-src 'unsafe-inline' 'self'; script-src 'unsafe-inline' 'self' https://cdn.skypack.dev https://cdn.jsdelivr.net/; Cross-Origin-Resource-Policy 'cross-origin'");
   res.setHeader("Cross-Origin-Resource-Policy", "cross-origin");
   res.removeHeader("Cross-Origin-Embedder-Policy")
   res.render('platform_game', { title: 'platform game'});
