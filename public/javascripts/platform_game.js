@@ -25,6 +25,7 @@ var climbing = true
 var pointerxy = [0, 0]
 var pressedKey = {}
 let touchStatus = [0, 0, 0, 0, 0];//[air, ground, x, wall, water]
+var maxSpeed = 1
 var mousefocus = false
 
 var {
@@ -63,35 +64,8 @@ var runner = Runner.create();
 Runner.run(runner, engine);
 
 // add bodies
-var playerBody = Bodies.rectangle(player.x, player.y, 50, 50)
+var playerBody = Bodies.rectangle(player.x, player.y, 25, 50)
 var obj = Bodies.rectangle(200, 400, 50, 50)
-var compoundBodyA = Matter.Composites.stack()
-Composite.add(compoundBodyA, [
-    Bodies.rectangle(100, 100, 20, 20, { id: 'head' }),
-    Bodies.rectangle(100, 120, 20, 20, { id: 'body' }),
-])
-Composite.add(compoundBodyA, [
-    Matter.Constraint.create({
-        bodyA: compoundBodyA.bodies[0],
-        bodyB: compoundBodyA.bodies[1],
-        length: 20,
-        stiffness: 0.9,
-        render: {
-            lineWidth: 1,
-            strokeStyle: '#ffffff'
-        }
-    })
-])
-Matter.Constraint.create({
-    pointA: { x: 100, y: 120 },
-    bodyB: compoundBodyA.bodies[1],
-    pointB: { x: 0, y: 0 },
-    length: 2,
-    stiffness: 0.9,
-    render: {
-        lineWidth: 1,
-    }
-})
 
 Composite.add(world, [
     // walls
@@ -101,7 +75,6 @@ Composite.add(world, [
     Bodies.rectangle(0, 300, 50, 600, { isStatic: true }),
     playerBody,
     obj,
-    compoundBodyA
 ]);
 
 // add mouse control
@@ -128,21 +101,7 @@ Render.lookAt(render, {
 });
 
 Events.on(engine, 'collisionStart', function (event) {
-    var pairs = event.pairs;
     touchStatus[1] = 1
-    // change object colours to show those starting a collision
-    for (var i = 0; i < pairs.length; i++) {
-        var pair = pairs[i];
-    }
-});
-
-Events.on(engine, 'collisionEnd', function (event) {
-    var pairs = event.pairs;
-    touchStatus[1] = 0
-    // change object colours to show those ending a collision
-    for (var i = 0; i < pairs.length; i++) {
-        var pair = pairs[i];
-    }
 });
 
 console.log(Matter)
@@ -165,6 +124,9 @@ function inGame() {
         //playerBody.position.x = playerBody.centre.x
         //playerBody.position.y = playerBody.centre.y;
     }//move
+    if(playerBody.angle%Math.PI != 0){
+        Body.setAngle(playerBody, (playerBody.angle%Math.PI)/1.1)
+    }
     if (pressedKey.r) {
         player = {
             x: startPos[0],
@@ -240,13 +202,16 @@ function eventHandler() {
 }
 function movement() {
     if (pressedKey.w && touchStatus[1]) {
-        Body.setVelocity(playerBody, { x: playerBody.velocity.x, y: -jumpheight })
+        //Body.setVelocity(playerBody, { x: playerBody.velocity.x, y: -jumpheight })
+        Body.applyForce(playerBody, { x: playerBody.position.x, y: playerBody.position.y }, { x: 0, y: -0.04 })
+        Body.setAngle(playerBody, (playerBody.angle%Math.PI)/2)
+        touchStatus[1] = 0
     }
-    if (pressedKey.d) {
-        Body.setPosition(playerBody, { x: playerBody.position.x + speed, y: playerBody.position.y })
+    if (pressedKey.d && playerBody.velocity.x < maxSpeed) {
+        Body.setVelocity(playerBody, { x: playerBody.velocity.x + speed, y: playerBody.velocity.y })
     }
-    if (pressedKey.a) {
-        Body.setPosition(playerBody, { x: playerBody.position.x - speed, y: playerBody.position.y })
+    if (pressedKey.a && playerBody.velocity.x > -maxSpeed) {
+        Body.setVelocity(playerBody, { x: playerBody.velocity.x - speed, y: playerBody.velocity.y })
     }
 }
 eventHandler()
