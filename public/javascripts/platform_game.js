@@ -2,12 +2,6 @@ var c = document.getElementById("canvas1");
 var container = document.getElementById("container");
 var ctx = c.getContext("2d")
 var startPos = [50, 300]
-var player = {
-    x: startPos[0],
-    y: startPos[1],
-    a: { x: 0, y: 0 },
-    v: { x: 0, y: 0 },
-}
 var rebound_ratio = 0.5
 var friction = 5
 var buoyancy = 0;
@@ -18,15 +12,16 @@ var speed = 1
 var jumpheight = 8;
 var frictionForce = [0, 0]
 var dragForce = [0, 0]
-var editMode = false;
+var editMode = 'playing';
 var collisionDetector = [false, false, false, false]
 var pressedpointer = false
 var climbing = true
 var pointerxy = [0, 0]
 var pressedKey = {}
-let touchStatus = [0, 0, 0, 0, 0];//[air, ground, x, wall, water]
+let touchStatus = [];
 var maxSpeed = 1
 var mousefocus = false
+var π = Math.PI
 
 var {
     Engine,
@@ -53,7 +48,8 @@ var render = Render.create({
     options: {
         width: 800,
         height: 600,
-        showAngleIndicator: true
+        showAngleIndicator: false,
+        wireframes: false
     }
 });
 
@@ -64,8 +60,15 @@ var runner = Runner.create();
 Runner.run(runner, engine);
 
 // add bodies
-var playerBody = Bodies.rectangle(player.x, player.y, 25, 50)
+var player = {
+    type: "composite",
+    bodies: [
+        Bodies.rectangle(startPos[0], startPos[1], 25, 50, { id: 'body' }),
+        Bodies.rectangle(startPos[0], startPos[1] + 25, 25, 10, { id: 'feet' }),
+    ]
+}
 var obj = Bodies.rectangle(200, 400, 50, 50)
+player.bodies[2] = Example.ragdoll.ragdoll(200, 0 * 1000, 1)
 
 Composite.add(world, [
     // walls
@@ -73,12 +76,12 @@ Composite.add(world, [
     Bodies.rectangle(400, 600, 800, 50, { isStatic: true }),
     Bodies.rectangle(800, 300, 50, 600, { isStatic: true }),
     Bodies.rectangle(0, 300, 50, 600, { isStatic: true }),
-    playerBody,
     obj,
+    ...player.bodies,
 ]);
 
 // add mouse control
-var mouse = Mouse.create(render.canvas),
+var mouse = Mouse.create(render.canvas)/*,
     mouseConstraint = MouseConstraint.create(engine, {
         mouse: mouse,
         constraint: {
@@ -87,9 +90,9 @@ var mouse = Mouse.create(render.canvas),
                 visible: false
             }
         }
-    });
+    });*/
 
-Composite.add(world, mouseConstraint);
+//Composite.add(world, mouseConstraint);
 
 // keep the mouse in sync with rendering
 render.mouse = mouse;
@@ -101,39 +104,43 @@ Render.lookAt(render, {
 });
 
 Events.on(engine, 'collisionStart', function (event) {
-    touchStatus[1] = 1
+    for (var i = 0; i < event.pairs.length; i++) {
+        var pair = event.pairs[i];
+        if ((4 <= pair.bodyA.id && pair.bodyA.id <= 13) && !(4 <= pair.bodyB.id && pair.bodyB.id <= 13)) {
+            touchStatus[pair.bodyA.id] = 1
+        } else {
+            touchStatus[pair.bodyA.id] = 0
+        }
+        if ((4 <= pair.bodyB.id && pair.bodyB.id <= 13) && !(4 <= pair.bodyA.id && pair.bodyA.id <= 13)) {
+            touchStatus[pair.bodyB.id] = 1
+        } else {
+            touchStatus[pair.bodyB.id] = 0
+        }
+    }
 });
-
-console.log(Matter)
 
 function inGame() {
     ctx.clearRect(0, 0, c.width, c.height)
-    if (playerBody.velocity.x > 20) {
-        playerBody.velocity.x = 20
+
+    balance(1.1)
+
+    if (player.bodies[0].velocity.x > 20) {
+        player.bodies[0].velocity.x = 20
     }
-    if (playerBody.velocity.x < -20) {
-        playerBody.velocity.x = -20
+    if (player.bodies[0].velocity.x < -20) {
+        player.bodies[0].velocity.x = -20
     }
-    if (playerBody.velocity.y < -20) {
-        playerBody.velocity.y = -20
+    if (player.bodies[0].velocity.y < -20) {
+        player.bodies[0].velocity.y = -20
     }
-    if (playerBody.velocity.y > 20) {
-        playerBody.velocity.y = 20
+    if (player.bodies[0].velocity.y > 20) {
+        player.bodies[0].velocity.y = 20
     }
-    if (editMode == "playing" || editMode == -1) {
-        //playerBody.position.x = playerBody.centre.x
-        //playerBody.position.y = playerBody.centre.y;
-    }//move
-    if(playerBody.angle%Math.PI != 0){
-        Body.setAngle(playerBody, (playerBody.angle%Math.PI)/1.1)
+    if (player.bodies[0].angle % Math.PI != 0) {
+        Body.setAngle(player.bodies[0], (player.bodies[0].angle % Math.PI) / 1.1)
     }
     if (pressedKey.r) {
-        player = {
-            x: startPos[0],
-            y: startPos[1],
-            a: { x: 0, y: 0 },
-            v: { x: 0, y: 0 },
-        }
+        Composite.add(world, [Bodies.circle(mouse.position.x, mouse.position.y, 1, { isStatic: true, render: {fillStyle: '#FFBC42' }})]);
     }
 }
 function changeMode(e) {
@@ -201,17 +208,48 @@ function eventHandler() {
     document.getElementById("load").addEventListener("keypress", () => load())
 }
 function movement() {
-    if (pressedKey.w && touchStatus[1]) {
-        //Body.setVelocity(playerBody, { x: playerBody.velocity.x, y: -jumpheight })
-        Body.applyForce(playerBody, { x: playerBody.position.x, y: playerBody.position.y }, { x: 0, y: -0.04 })
-        Body.setAngle(playerBody, (playerBody.angle%Math.PI)/2)
-        touchStatus[1] = 0
+    if (pressedKey.w) {
+        if(touchStatus[6] == 1){
+            Body.applyForce(player.bodies[2].bodies[0], { x: player.bodies[2].bodies[0].position.x, y: player.bodies[2].bodies[0].position.y}, { x: (player.bodies[2].bodies[0].position.x - player.bodies[2].bodies[6].position.x)/1000, y: (player.bodies[2].bodies[0].position.y - player.bodies[2].bodies[6].position.y)/1000 })
+        }
+        if(touchStatus[7] == 1){
+            Body.applyForce(player.bodies[2].bodies[0], { x: player.bodies[2].bodies[0].position.x, y: player.bodies[2].bodies[0].position.y}, { x: (player.bodies[2].bodies[0].position.x - player.bodies[2].bodies[7].position.x)/1000, y: (player.bodies[2].bodies[0].position.y - player.bodies[2].bodies[7].position.y)/1000 })
+        }
+        balance(1.1)
     }
-    if (pressedKey.d && playerBody.velocity.x < maxSpeed) {
-        Body.setVelocity(playerBody, { x: playerBody.velocity.x + speed, y: playerBody.velocity.y })
+    if (pressedKey.d && player.bodies[2].bodies[0].velocity.x < maxSpeed) {
+        Body.setVelocity(player.bodies[2].bodies[0], { x: player.bodies[2].bodies[0].velocity.x + speed, y: player.bodies[2].bodies[0].velocity.y })
+        balance(1.1, -0.1)
     }
-    if (pressedKey.a && playerBody.velocity.x > -maxSpeed) {
-        Body.setVelocity(playerBody, { x: playerBody.velocity.x - speed, y: playerBody.velocity.y })
+    if (pressedKey.a && player.bodies[2].bodies[0].velocity.x > -maxSpeed) {
+        Body.setVelocity(player.bodies[2].bodies[0], { x: player.bodies[2].bodies[0].velocity.x - speed, y: player.bodies[2].bodies[0].velocity.y })
+        balance(1.1, 0.1)
+    }
+    if(pressedKey.q){
+        balance(2,0,!!(touchStatus[6] == 1 || touchStatus[7] == 1))
+        if(touchStatus[6] == 1 && touchStatus[7] ==1){
+            Body.applyForce(player.bodies[2].bodies[0], { x: player.bodies[2].bodies[0].position.x, y: player.bodies[2].bodies[0].position.y}, { x: (player.bodies[2].bodies[0].position.x - player.bodies[2].bodies[6].position.x)/1000, y: (player.bodies[2].bodies[0].position.y - player.bodies[2].bodies[6].position.y)/1000 })
+            Body.applyForce(player.bodies[2].bodies[0], { x: player.bodies[2].bodies[0].position.x, y: player.bodies[2].bodies[0].position.y}, { x: (player.bodies[2].bodies[0].position.x - player.bodies[2].bodies[7].position.x)/1000, y: (player.bodies[2].bodies[0].position.y - player.bodies[2].bodies[7].position.y)/1000 })
+
+        }
+    }
+}
+function balance(a, b = 0, c = false) {
+    Body.setAngle(player.bodies[2].bodies[0], (player.bodies[2].bodies[0].angle % Math.PI) / a+b)
+    Body.setAngle(player.bodies[2].bodies[6], (player.bodies[2].bodies[6].angle % Math.PI) / a+b)
+    Body.setAngle(player.bodies[2].bodies[7], (player.bodies[2].bodies[7].angle % Math.PI) / a+b)
+    Body.setAngle(player.bodies[2].bodies[8], (player.bodies[2].bodies[8].angle % Math.PI) / a+b)
+    Body.setAngle(player.bodies[2].bodies[9], (player.bodies[2].bodies[9].angle % Math.PI) / a+b)
+    if(c){
+        Body.setAngle(player.bodies[2].bodies[0], 0)
+        Body.setAngle(player.bodies[2].bodies[6], 0)
+        Body.setAngle(player.bodies[2].bodies[7], 0)
+        Body.setAngle(player.bodies[2].bodies[8], 0)
+        Body.setAngle(player.bodies[2].bodies[9], 0)
+        Body.setPosition(player.bodies[2].bodies[8], { x: player.bodies[2].bodies[6].position.x/2+player.bodies[2].bodies[8]/2, y: player.bodies[2].bodies[6].position.y/2 + player.bodies[2].bodies[8]/2-15 })
+        Body.setPosition(player.bodies[2].bodies[9], { x: player.bodies[2].bodies[7].position.x/2+player.bodies[2].bodies[9]/2, y: player.bodies[2].bodies[7].position.y/2 + player.bodies[2].bodies[9]/2-15 })
+        Body.setPosition(player.bodies[2].bodies[6], { x: player.bodies[2].bodies[6].position.x/2+player.bodies[2].bodies[8]/2, y: player.bodies[2].bodies[6].position.y/2 + player.bodies[2].bodies[8]/2+15 })
+
     }
 }
 eventHandler()
