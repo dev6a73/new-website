@@ -139,7 +139,7 @@ const params = new Proxy(new URLSearchParams(window.location.search), {
     get: (searchParams, prop) => searchParams.get(prop),
 });
 
-level = params.level
+level = params.level || 0
 
 Composite.add(world, [
     // walls
